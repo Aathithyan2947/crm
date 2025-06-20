@@ -1,4 +1,4 @@
-export const activityFormConfig = [
+export const activityTypeFormConfig = [
   {
     label: 'Name of the Activity Type',
     name: 'name',

@@ -4,12 +4,29 @@ import Select from 'react-select';
 
 export default function SimpleSelect({
   value,
-  options,
+  options = [],
   onChange,
   error,
   isDisabled,
 }) {
-  const formattedOptions = options.map((opt) => ({ label: opt, value: opt }));
+  // Format options to handle both string arrays and object arrays
+  const formattedOptions = options.map((opt) => {
+    if (typeof opt === 'string') {
+      return { label: opt, value: opt };
+    }
+    // Handle API response objects that might have different property names
+    return {
+      label: opt.label || opt.Label || opt.name || opt.value || String(opt),
+      value: opt.value || opt.id || opt.Value || opt,
+    };
+  });
+
+  // Find the selected value in formatted options
+  const selectedValue =
+    formattedOptions.find(
+      (opt) => opt.value === value || opt.label === value
+    ) || null;
+
   const customStyles = {
     control: (provided, state) => ({
       ...provided,
@@ -34,7 +51,7 @@ export default function SimpleSelect({
   return (
     <Select
       options={formattedOptions}
-      value={value ? { label: value, value } : null}
+      value={selectedValue}
       onChange={(selected) => onChange(selected?.value)}
       isDisabled={isDisabled}
       isSearchable={false}

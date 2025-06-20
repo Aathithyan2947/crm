@@ -1,10 +1,6 @@
+// app/layout.tsx
 import './globals.css';
 import ClientLayout from '@/lib/client-layout';
-
-// export const metadata = {
-//   title: 'Flaer CRM',
-//   description: 'Welcome to FlaerHomes CRM',
-// };
 
 export default function RootLayout({ children }) {
   return (

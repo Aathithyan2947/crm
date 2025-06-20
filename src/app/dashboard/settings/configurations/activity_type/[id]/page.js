@@ -2,8 +2,8 @@
 
 import CustomForm from '@/components/ui/custom-form';
 import PageHeader from '@/components/ui/page-header';
-import { activityFormConfig } from '@/config/form-config/activity-type-config';
-import { ROUTES } from '@/helpers/enums';
+import { activityTypeFormConfig } from '@/config/form-config/activity-type-config';
+import { DASHBOARD_ROUTES } from '@/helpers/enums';
 import {
   createActivityType,
   getActivityType,
@@ -11,6 +11,7 @@ import {
 } from '@/services/activity-type-api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 export default function ManageActivityType() {
   const { id } = useParams();
@@ -30,12 +31,14 @@ export default function ManageActivityType() {
     onSuccess: () => {
       toast.success('Activity Type Created!');
       queryClient.invalidateQueries({
-        queryKey: ['activity-type'],
+        queryKey: ['activity_type'],
       });
-      router.push(ROUTES.ACTIVITY_TYPE);
+      router.push(DASHBOARD_ROUTES.ACTIVITY_TYPE);
     },
-    onError: () => {
-      toast.error('Failed to create employee group');
+    onError: (err) => {
+      toast.error(
+        err.response?.data?.message || 'Failed to create activity type'
+      );
     },
   });
 
@@ -44,15 +47,17 @@ export default function ManageActivityType() {
     onSuccess: () => {
       toast.success('Activity Type Updated!');
       queryClient.invalidateQueries({
-        queryKey: ['activity-type'],
+        queryKey: ['activity_type'],
       });
       queryClient.invalidateQueries({
         queryKey: ['actitvity-type', id],
         exact: true,
       });
     },
-    onError: () => {
-      toast.error('Failed to update Activity type');
+    onError: (err) => {
+      toast.error(
+        err.response?.data?.message || 'Failed to update Activity type'
+      );
     },
   });
 
@@ -67,11 +72,11 @@ export default function ManageActivityType() {
   const formData = isEditMode && data?.data ? data?.data : {};
 
   return (
-    <div>
+    <div className='px-4'>
       <PageHeader title={'Activity Type'} showBackButton={true} />
       <CustomForm
         title={'Actitvity Type'}
-        formDetails={activityFormConfig}
+        formDetails={activityTypeFormConfig}
         data={formData}
         onSubmit={handleSubmit}
         isLoading={

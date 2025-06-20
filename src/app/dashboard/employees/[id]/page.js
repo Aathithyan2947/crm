@@ -17,7 +17,7 @@ import {
 } from '@/services/employees-api';
 import { mapEmployeeDataToForm } from '@/helpers/data-format';
 import { makeCancelableFetcher } from '@/lib/cancel-token';
-import { ROUTES } from '@/helpers/enums';
+import { DASHBOARD_ROUTES } from '@/helpers/enums';
 
 export default function ManageEmployee() {
   const { id } = useParams();
@@ -37,10 +37,10 @@ export default function ManageEmployee() {
     onSuccess: () => {
       toast.success('Employee Created!');
       queryClient.invalidateQueries({ queryKey: ['employees_listing'] });
-      router.push(ROUTES.EMPLOYEES);
+      router.push(DASHBOARD_ROUTES.EMPLOYEES);
     },
-    onError: () => {
-      toast.error('Failed to create employee');
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to create employee');
     },
   });
 
@@ -54,8 +54,8 @@ export default function ManageEmployee() {
         exact: true,
       });
     },
-    onError: () => {
-      toast.error('Failed to update employee');
+    onError: (err) => {
+      toast.error(err.response?.data?.message, 'Failed to update employee');
     },
   });
 
@@ -102,7 +102,7 @@ export default function ManageEmployee() {
   };
 
   return (
-    <div>
+    <div className='px-4'>
       <PageHeader title={'Employees'} showBackButton={true} />
       {isFetching ? (
         <Loader />

@@ -6,7 +6,7 @@ export default function PageHeader({ title, showBackButton = false }) {
   const router = useRouter();
 
   return (
-    <div className='py-4 flex items-center gap-4'>
+    <div className='py-2 flex items-center gap-4'>
       {showBackButton && (
         <button
           onClick={() => router.back()}
@@ -15,7 +15,7 @@ export default function PageHeader({ title, showBackButton = false }) {
           <ArrowLeft size={20} />
         </button>
       )}
-      <h1 className='text-black font-medium text-2xl'>{title}</h1>
+      <h1 className='text-black font-bold text-xl'>{title}</h1>
     </div>
   );
 }

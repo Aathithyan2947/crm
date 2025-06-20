@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import toast from 'react-hot-toast';
@@ -19,7 +19,13 @@ export default function LoginPage() {
   const [resetting, setResetting] = useState(false);
 
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, token } = useAuth();
+
+  useEffect(() => {
+    if (token) {
+      router.replace('/dashboard/employees');
+    }
+  }, [token, router]);
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();

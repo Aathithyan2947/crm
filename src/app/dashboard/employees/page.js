@@ -1,6 +1,9 @@
 'use client';
 
-import CustomTable from '@/components/ui/custom-table';
+const CustomTable = dynamic(() => import('@/components/ui/custom-table'), {
+  ssr: false,
+});
+
 import PageHeader from '@/components/ui/page-header';
 import { User } from 'lucide-react';
 import { usePathname } from 'next/navigation';
@@ -13,6 +16,7 @@ import {
 } from '@/services/employees-api';
 import { employeeFilterConfig } from '@/config/filter-config/employees-filter-config';
 import { makeCancelableFetcher } from '@/lib/cancel-token';
+import dynamic from 'next/dynamic';
 
 export default function EmployeesPage() {
   const pathname = usePathname();
@@ -31,7 +35,7 @@ export default function EmployeesPage() {
       setTotalPage(response?.meta?.total_pages || 1);
     },
     onError: (err) => {
-      toast.error(err?.message || 'Failed to fetch employees');
+      toast.error(err.response?.data?.message || 'Failed to fetch employees');
     },
   });
 
@@ -73,7 +77,7 @@ export default function EmployeesPage() {
         actionPath={pathname}
         data={mappedEmployees}
         currPage={currPage}
-        setCurrpage={setCurrPage}
+        setCurrPage={setCurrPage}
         totalPages={totalPage}
         isLoading={isLoading}
         // Pass filter props

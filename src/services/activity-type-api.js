@@ -14,8 +14,12 @@ export const getActivityType = (activity_id) => {
   );
 };
 
-export const updateActivityType = (activity_id) => {
-  return axiosInstance.post(
+export const getActivityTypeName = () => {
+  return axiosInstance.get(`/activity_type/get_activity_type_names`);
+};
+
+export const updateActivityType = (activity_id, data) => {
+  return axiosInstance.put(
     `/activity_type/${activity_id}/update_activity_type`,
     data
   );

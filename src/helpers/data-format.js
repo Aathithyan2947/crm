@@ -8,3 +8,15 @@ export const mapEmployeeDataToForm = (data) => {
     employee_group_ids: data.groups?.map((group) => group.id) || [],
   };
 };
+
+export const mapActivityOutcomeDataToForm = (data) => {
+  if (!data) return {};
+
+  return {
+    ...data,
+    outcomes: data.outcomes?.map((outcome) => ({ value: outcome.name })) || [
+      { value: '' },
+    ],
+    activity_type_ids: data.types?.map((type) => type.id) || [],
+  };
+};

@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import SimpleSelect from './simple-dropdown';
 import SearchableSelect from './searchable-dropdown';
 import MultiSelect from './mulit-select-dropdown';
 import ToggleSwitch from './toggle-switch';
+import DynamicInputGroup from './dynamic-input-group';
 import { buildSchema } from '@/lib/form-build-schema';
 import Loader from './loader';
 import { Save, Edit, Loader2 } from 'lucide-react';
@@ -21,7 +22,6 @@ export default function CustomForm({
 }) {
   // Filter out fields that should be hidden in create mode
   const filteredFormDetails = formDetails.filter((field) => {
-    // If we're in create mode and field has hideInCreate: true, exclude it
     if (!data?.id && field.hideInCreate) {
       return false;
     }
@@ -29,21 +29,28 @@ export default function CustomForm({
   });
 
   const schema = buildSchema(filteredFormDetails);
-  const defaultValues = {
-    ...data,
-    ...filteredFormDetails.reduce((acc, field) => {
-      if (field.type === 'toggle' && !(field.name in data)) {
-        acc[field.name] = true;
-      }
-      return acc;
-    }, {}),
-  };
+  const defaultValues = useMemo(
+    () => ({
+      ...data,
+      ...filteredFormDetails.reduce((acc, field) => {
+        if (field.type === 'toggle' && !(field.name in data)) {
+          acc[field.name] = true;
+        }
+        if (field.type === 'dynamic-input' && !(field.name in data)) {
+          acc[field.name] = [{ value: '' }];
+        }
+        return acc;
+      }, {}),
+    }),
+    [data, filteredFormDetails]
+  );
 
   const {
     register,
     handleSubmit,
     control,
     reset,
+    getValues,
     formState: { errors },
   } = useForm({
     defaultValues: defaultValues,
@@ -57,26 +64,46 @@ export default function CustomForm({
     const hasData = Object.keys(data).length > 0;
     if (hasData) {
       const formattedData = { ...data };
+
+      // Format status if it exists
       if (formattedData.status !== undefined) {
         formattedData.status = formattedData.status === 'active';
       }
-      reset(formattedData);
+
+      // Format dynamic inputs if they exist
+      if (
+        formattedData.dynamicInputs &&
+        !Array.isArray(formattedData.dynamicInputs[0])
+      ) {
+        formattedData.dynamicInputs = formattedData.dynamicInputs.map(
+          (value) => ({ value })
+        );
+      }
+
+      // Only reset if data has actually changed
+      if (JSON.stringify(formattedData) !== JSON.stringify(getValues())) {
+        reset(formattedData);
+      }
+
       if (!isCreateMode) {
         setIsEditing(false);
       }
     } else {
-      reset(defaultValues);
+      // Only reset to defaults if we're in create mode and form is empty
+      if (Object.keys(getValues()).length === 0 || isCreateMode) {
+        reset(defaultValues);
+      }
       if (isCreateMode) {
         setIsEditing(true);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.id, reset, isCreateMode]);
+  }, [data, isCreateMode, reset]);
 
   const submitHandler = (values) => {
-    // First, filter out any fields that should be excluded in create mode
     let submissionData = { ...values };
 
+    // Filter out hidden fields in create mode
     if (isCreateMode) {
       submissionData = Object.fromEntries(
         Object.entries(values).filter(([key]) => {
@@ -86,9 +113,16 @@ export default function CustomForm({
       );
     }
 
-    // Transform boolean status back to active/inactive if needed
+    // Transform data for backend
     if (submissionData.status !== undefined) {
       submissionData.status = submissionData.status ? 'active' : 'inactive';
+    }
+
+    // Transform dynamic inputs to simple array if they exist
+    if (submissionData.dynamicInputs) {
+      submissionData.dynamicInputs = submissionData.dynamicInputs.map(
+        (item) => item.value
+      );
     }
 
     if (onSubmit) onSubmit(submissionData);
@@ -97,7 +131,6 @@ export default function CustomForm({
     }
   };
 
-  // Separate toggle fields from other fields (from filtered form details)
   const toggleFields = filteredFormDetails.filter(
     (field) => field.type === 'toggle'
   );
@@ -119,7 +152,7 @@ export default function CustomForm({
       )}
 
       <div className='flex justify-between items-center'>
-        <h2 className='text-lg font-semibold'>
+        <h2 className='text-md font-semibold'>
           {isCreateMode ? `Create ${title}` : `Edit ${title}`}
         </h2>
         <div className='flex gap-2'>
@@ -175,14 +208,15 @@ export default function CustomForm({
               const isError = errors[field.name];
               const isRequired = field.validation?.required;
               const isTextArea = field.type === 'text-area';
-              // Determine if field should be permanently disabled (readonly)
               const isPermanentlyDisabled = field.readonly && !isCreateMode;
 
               return (
                 <div
                   key={index}
                   className={`flex flex-col ${
-                    isTextArea ? 'md:col-span-2' : ''
+                    isTextArea || field.type === 'dynamic-input'
+                      ? 'md:col-span-2'
+                      : ''
                   }`}
                 >
                   <label className='mb-1 font-medium text-sm text-gray-600'>
@@ -345,6 +379,64 @@ export default function CustomForm({
                         </p>
                       )}
                     </>
+                  )}
+
+                  {/* Color Picker */}
+                  {field.type === 'color' && (
+                    <>
+                      <input
+                        type='color'
+                        {...register(field.name)}
+                        disabled={!isEditing || isPermanentlyDisabled}
+                        className={`h-10 w-16 border rounded-md p-1 focus:outline-none cursor-pointer ${
+                          isError ? 'border-red-500' : 'border-gray-300'
+                        } ${
+                          !isEditing || isPermanentlyDisabled
+                            ? 'bg-gray-100 cursor-not-allowed'
+                            : ''
+                        }`}
+                      />
+                      {isError && (
+                        <p className='pt-2 text-xs text-red-500'>
+                          {isError.message}
+                        </p>
+                      )}
+                    </>
+                  )}
+
+                  {/* Dynamic Input Group */}
+
+                  {field.type === 'dynamic-input' && (
+                    <Controller
+                      control={control}
+                      name={field.name}
+                      render={({ field: controllerField }) => (
+                        <DynamicInputGroup
+                          fields={controllerField.value || [{ value: '' }]}
+                          onAddField={() => {
+                            const newValue = [
+                              ...controllerField.value,
+                              { value: '' },
+                            ];
+                            controllerField.onChange(newValue);
+                          }}
+                          onRemoveField={(index) => {
+                            const newValue = [...controllerField.value];
+                            newValue.splice(index, 1);
+                            controllerField.onChange(
+                              newValue.length ? newValue : [{ value: '' }]
+                            );
+                          }}
+                          onChange={(index, value) => {
+                            const newValue = [...controllerField.value];
+                            newValue[index].value = value;
+                            controllerField.onChange(newValue);
+                          }}
+                          isEditing={isEditing}
+                          error={errors[field.name]}
+                        />
+                      )}
+                    />
                   )}
                 </div>
               );

@@ -10,12 +10,12 @@ import { useState } from 'react';
 
 export default function CustomTable({
   tableName,
-  buttonTile,
+  buttonTitle,
   buttonIcon,
   buttonPath,
   actionPath,
   currPage,
-  setCurrpage,
+  setCurrPage,
   totalPages,
   data,
   isLoading,
@@ -78,17 +78,17 @@ export default function CustomTable({
             </tr>
           </thead>
           <tbody className='bg-white divide-y divide-gray-200'>
-            {data.map((employee) => (
-              <tr key={employee.id}>
+            {data.map((item) => (
+              <tr key={item.id}>
                 {columns.map((column) => (
                   <td
-                    key={`${employee.id}-${column}`}
+                    key={`${item.id}-${column}`}
                     className='px-3 py-2 whitespace-normal break-words text-xs text-gray-600'
                   >
                     {column === 'status' ? (
-                      <StatusChip status={employee[column]} />
+                      <StatusChip status={item[column]} />
                     ) : (
-                      employee[column]
+                      item[column]
                     )}
                   </td>
                 ))}
@@ -96,7 +96,7 @@ export default function CustomTable({
                   <td className='px-3 py-2 whitespace-nowrap text-xs font-medium'>
                     <Link
                       className='flex items-center gap-1 text-deepViolet hover:text-blue-900 hover:scale-105 transition-all duration-200'
-                      href={`${actionPath}/${employee.id}`}
+                      href={`${actionPath}/${item.id}`}
                     >
                       <span>Details</span>
                       <Eye size={15} />
@@ -113,7 +113,7 @@ export default function CustomTable({
             <Pagination
               currentPage={currPage}
               totalPages={totalPages}
-              onPageChange={setCurrpage}
+              onPageChange={setCurrPage}
             />
           </div>
         )}
@@ -129,7 +129,7 @@ export default function CustomTable({
           {filterConfig.length > 0 && (
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-1 text-sm px-3 py-2 border rounded-3xl hover:scale-105 transition-all duration-300 ${
+              className={`flex items-center gap-1 text-xs px-3 py-2 border rounded-3xl hover:scale-105 transition-all duration-300 ${
                 showFilters
                   ? 'bg-deepViolet text-white border-deepViolet'
                   : 'border-gray-300 hover:bg-gray-100'
@@ -139,7 +139,13 @@ export default function CustomTable({
               <Filter size={15} />
             </button>
           )}
-          <Button title={buttonTile} icon={buttonIcon} routepath={buttonPath} />
+          {buttonPath && (
+            <Button
+              title={buttonTitle}
+              icon={buttonIcon}
+              routepath={buttonPath}
+            />
+          )}
         </div>
       </div>
 

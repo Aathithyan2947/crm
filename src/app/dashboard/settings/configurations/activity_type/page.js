@@ -15,7 +15,9 @@ export default function ActivityTypePage() {
     queryKey: ['activity_type'],
     queryFn: getActivityTypeListing,
     onError: (err) => {
-      toast.error(err?.message || 'Failed to fetch employee group');
+      toast.error(
+        err.response?.data?.message || 'Failed to fetch Activity Type'
+      );
     },
   });
 

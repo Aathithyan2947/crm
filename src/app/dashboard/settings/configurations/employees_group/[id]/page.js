@@ -14,7 +14,7 @@ import {
   getEmployeeGroup,
   updateEmployeeGroup,
 } from '@/services/employees-group-api';
-import { ROUTES } from '@/helpers/enums';
+import { SETTINGS_MODULE_ROUTES } from '@/helpers/enums';
 
 export default function ManageEmployeeGroup() {
   const { id } = useParams();
@@ -36,10 +36,12 @@ export default function ManageEmployeeGroup() {
       queryClient.invalidateQueries({
         queryKey: ['employees_group_listing'],
       });
-      router.push(ROUTES.EMPLOYEES_GROUP);
+      router.push(SETTINGS_MODULE_ROUTES.EMPLOYEES_GROUP);
     },
-    onError: () => {
-      toast.error('Failed to create employee group');
+    onError: (err) => {
+      toast.error(
+        err.response?.data?.message || 'Failed to create employee group'
+      );
     },
   });
 
@@ -55,8 +57,10 @@ export default function ManageEmployeeGroup() {
         exact: true,
       });
     },
-    onError: () => {
-      toast.error('Failed to update employee group');
+    onError: (err) => {
+      toast.error(
+        err.response?.data?.message || 'Failed to update employee group'
+      );
     },
   });
 
@@ -73,7 +77,7 @@ export default function ManageEmployeeGroup() {
   const tableData = isEditMode && data ? data?.data?.employees : [];
 
   return (
-    <div>
+    <div className='px-4'>
       <PageHeader title={'Employees Group'} showBackButton={true} />
 
       <CustomForm
@@ -91,13 +95,10 @@ export default function ManageEmployeeGroup() {
           <CustomTable
             tableName='Employees'
             data={tableData}
-            buttonTile={'Add New'}
-            buttonIcon={<User size={16} />}
-            buttonPath={`${ROUTES.EMPLOYEES}/new`}
             showActions={false}
             currPage={1}
             totalPages={1}
-            setCurrpage={() => {}}
+            setCurrPage={() => {}}
           />
         </div>
       )}
