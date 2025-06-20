@@ -44,7 +44,7 @@ export default function EmployeeGroupPage() {
       <PageHeader title={'Employees Group'} />
       <CustomTable
         tableName={'Employees Group'}
-        buttonTile={'Add New'}
+        buttonTitle={'Add New'}
         buttonIcon={<User size={15} />}
         buttonPath={createEmployeeGroup}
         actionPath={pathname}

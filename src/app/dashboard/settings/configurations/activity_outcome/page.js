@@ -32,7 +32,7 @@ export default function ActivityOutcomePage() {
       <PageHeader title={'Activity Outcome'} />
       <CustomTable
         tableName={'Activity Outcome listing'}
-        buttonTile={'Add Outcome'}
+        buttonTitle={'Add Outcome'}
         buttonIcon={<Tag size={15} />}
         buttonPath={createActivityOutcome}
         actionPath={pathname}

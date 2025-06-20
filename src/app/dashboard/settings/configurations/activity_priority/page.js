@@ -28,7 +28,7 @@ export default function ActivityPriorityPage() {
       <PageHeader title={'Activity Priority'} />
       <CustomTable
         tableName={'Activity Priority listing'}
-        buttonTile={'Add priority'}
+        buttonTitle={'Add priority'}
         buttonIcon={<Tag size={15} />}
         buttonPath={createActivityPriority}
         actionPath={pathname}

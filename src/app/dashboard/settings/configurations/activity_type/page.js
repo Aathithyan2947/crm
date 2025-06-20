@@ -28,7 +28,7 @@ export default function ActivityTypePage() {
       <PageHeader title={'Activity Type'} />
       <CustomTable
         tableName={'Activity type listing'}
-        buttonTile={'Add type'}
+        buttonTitle={'Add type'}
         buttonIcon={<Tag size={15} />}
         buttonPath={createActivityType}
         actionPath={pathname}

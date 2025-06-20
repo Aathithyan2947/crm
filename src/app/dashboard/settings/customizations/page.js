@@ -24,6 +24,7 @@ import { CSS } from '@dnd-kit/utilities';
 import axios from 'axios';
 import SimpleSelect from '@/components/ui/simple-dropdown';
 import ToggleSwitch from '@/components/ui/toggle-switch';
+import { createDropdownConfig, getDropdownConfigs, getDropdownModels, getModelFields, updateDropdownConfig } from '@/services/customization-api';
 
 const API_BASE_URL = 'http://192.168.0.138:8080/api/v1';
 
@@ -36,10 +37,7 @@ export default function DropdownConfigurationManager() {
   // Fetch dropdown models
   const { data: models } = useQuery({
     queryKey: ['dropdownModels'],
-    queryFn: () =>
-      axios
-        .get(`${API_BASE_URL}/config/dropdown_models`)
-        .then((res) => res.data.data),
+    queryFn: () => getDropdownModels().then((res) => res.data.data),
     select: (data) => {
       if (!Array.isArray(data)) return [];
       return data.map((item) => item.value);
@@ -49,10 +47,7 @@ export default function DropdownConfigurationManager() {
   // Fetch fields for selected model
   const { data: modelFields } = useQuery({
     queryKey: ['modelFields', selectedModel],
-    queryFn: () =>
-      axios
-        .get(`${API_BASE_URL}/config/dropdown_fields?model=${selectedModel}`)
-        .then((res) => res.data.data),
+    queryFn: () => getModelFields(selectedModel).then((res) => res.data.data),
     enabled: !!selectedModel,
     select: (data) => {
       if (!Array.isArray(data)) return [];
@@ -63,15 +58,9 @@ export default function DropdownConfigurationManager() {
     },
   });
 
-  // Fetch existing configurations for selected model
   const { data: configData, refetch: refetchConfig } = useQuery({
     queryKey: ['dropdownConfigs', selectedModel],
-    queryFn: () =>
-      axios
-        .get(
-          `${API_BASE_URL}/app_config/list_app_configurations?model_name=${selectedModel}`
-        )
-        .then((res) => res.data.data),
+    queryFn: () => getDropdownConfigs(selectedModel).then((res) => res.data.data),
     enabled: !!selectedModel,
   });
 
@@ -79,12 +68,12 @@ export default function DropdownConfigurationManager() {
   const existingOptions =
     selectedAttribute && configData?.attributes?.[selectedAttribute]
       ? configData.attributes[selectedAttribute].map((opt) => ({
-          id: opt.id?.toString() || `${opt.config_key}-${opt.config_value}`,
-          config_key: opt.config_key,
-          config_value: opt.config_value,
-          display_order: opt.display_order || 0,
-          is_active: opt.is_active !== false,
-        }))
+        id: opt.id?.toString() || `${opt.config_key}-${opt.config_value}`,
+        config_key: opt.config_key,
+        config_value: opt.config_value,
+        display_order: opt.display_order || 0,
+        is_active: opt.is_active !== false,
+      }))
       : [];
 
   const hasExistingConfig = !!existingOptions.length;
@@ -93,41 +82,34 @@ export default function DropdownConfigurationManager() {
   const { mutate: saveConfig, isPending: isSaving } = useMutation({
     mutationFn: (config) => {
       if (hasExistingConfig) {
-        // Update existing configuration
-        return axios.put(
-          `${API_BASE_URL}/app_config/update_app_configurations?model_name=${config.model_name}&attribute=${config.attribute}`,
-          {
-            options: config.options.map((opt) => ({
-              id: Number(opt.id),
-              config_key: opt.config_key,
-              config_value: opt.config_value,
-              display_order: opt.display_order,
-              is_active: opt.is_active,
-            })),
-          }
+        return updateDropdownConfig(
+          config.model_name,
+          config.attribute,
+          config.options.map((opt) => ({
+            id: Number(opt.id),
+            config_key: opt.config_key,
+            config_value: opt.config_value,
+            display_order: opt.display_order,
+            is_active: opt.is_active,
+          }))
         );
       } else {
-        // Create new configuration
-        return axios.post(
-          `${API_BASE_URL}/app_config/create_app_configurations`,
-          {
-            model_name: config.model_name,
-            attribute: config.attribute,
-            options: config.options.map((opt, index) => ({
-              config_key:
-                opt.config_key ||
-                opt.config_value.toUpperCase().replace(/\s+/g, '_'),
-              config_value: opt.config_value,
-              display_order: index,
-              is_active: opt.is_active !== false,
-            })),
-          }
-        );
+        return createDropdownConfig({
+          model_name: config.model_name,
+          attribute: config.attribute,
+          options: config.options.map((opt, index) => ({
+            config_key:
+              opt.config_key ||
+              opt.config_value.toUpperCase().replace(/\s+/g, '_'),
+            config_value: opt.config_value,
+            display_order: index,
+            is_active: opt.is_active !== false,
+          })),
+        });
       }
     },
     onSuccess: () => {
       toast.success('Configuration saved successfully');
-      // Invalidate and refetch the config data
       queryClient.invalidateQueries(['dropdownConfigs', selectedModel]);
       setIsEditing(false);
     },
@@ -136,7 +118,6 @@ export default function DropdownConfigurationManager() {
       toast.error('Failed to save configuration');
     },
   });
-
   const handleModelChange = (value) => {
     setSelectedModel(value);
     setSelectedAttribute('');
@@ -233,14 +214,14 @@ function EditableOptionsList({ initialOptions, onSave, isSaving }) {
     initialOptions.length > 0
       ? initialOptions
       : [
-          {
-            id: 'new-0',
-            config_key: '',
-            config_value: '',
-            display_order: 0,
-            is_active: true,
-          },
-        ]
+        {
+          id: 'new-0',
+          config_key: '',
+          config_value: '',
+          display_order: 0,
+          is_active: true,
+        },
+      ]
   );
   const [activeId, setActiveId] = useState(null);
   const [newOptionValue, setNewOptionValue] = useState('');
@@ -464,9 +445,8 @@ function SortableOption({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 p-3 bg-white ${
-        isDragging ? 'bg-blue-50 shadow-md' : ''
-      } ${disabled ? 'opacity-50' : ''}`}
+      className={`flex items-center gap-3 p-3 bg-white ${isDragging ? 'bg-blue-50 shadow-md' : ''
+        } ${disabled ? 'opacity-50' : ''}`}
     >
       <button
         {...attributes}
@@ -505,13 +485,12 @@ function SortableOption({
 function OptionItem({ option, isDragging }) {
   return (
     <div
-      className={`flex items-center gap-3 p-3 bg-white shadow-lg ${
-        isDragging ? 'ring-1 ring-blue-500' : ''
-      }`}
+      className={`flex items-center gap-3 p-3 bg-white shadow-lg ${isDragging ? 'ring-1 ring-blue-500' : ''
+        }`}
     >
       <GripVertical className='h-4 w-4 text-gray-400' />
       <div className='flex-1 px-3 py-2'>{option.config_value}</div>
-      <ToggleSwitch value={option.is_active} onChange={() => {}} isDisabled />
+      <ToggleSwitch value={option.is_active} onChange={() => { }} isDisabled />
     </div>
   );
 }
@@ -536,7 +515,7 @@ function ReadOnlyOptionsList({ options }) {
                 <div className='flex-1'>{option.config_value}</div>
                 <ToggleSwitch
                   value={option.is_active}
-                  onChange={() => {}}
+                  onChange={() => { }}
                   isDisabled
                 />
               </div>

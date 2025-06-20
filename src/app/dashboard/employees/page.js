@@ -71,7 +71,7 @@ export default function EmployeesPage() {
       <PageHeader title={'Employees'} />
       <CustomTable
         tableName={'Employees Listing'}
-        buttonTile={'Add New'}
+        buttonTitle={'Add New'}
         buttonIcon={<User size={15} />}
         buttonPath={createEmployeePath}
         actionPath={pathname}
