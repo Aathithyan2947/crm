@@ -51,7 +51,6 @@ export const employeeFormConfig = [
     name: 'superior_id',
     type: 'searchable-select',
     options: [],
-    validation: { required: true },
     fetchOptions: 'getSuperiorName',
     debounceDelay: 500,
   },

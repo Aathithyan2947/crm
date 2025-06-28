@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Select from 'react-select';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export default function SimpleSelect({
   value,
@@ -8,24 +10,48 @@ export default function SimpleSelect({
   onChange,
   error,
   isDisabled,
+  fetchOptions,
+  useApiFiltering = false,
+  debounceDelay = 300,
 }) {
-  // Format options to handle both string arrays and object arrays
-  const formattedOptions = options.map((opt) => {
-    if (typeof opt === 'string') {
-      return { label: opt, value: opt };
-    }
-    // Handle API response objects that might have different property names
-    return {
-      label: opt.label || opt.Label || opt.name || opt.value || String(opt),
-      value: opt.value || opt.id || opt.Value || opt,
-    };
-  });
+  const [loadedOptions, setLoadedOptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Find the selected value in formatted options
-  const selectedValue =
-    formattedOptions.find(
-      (opt) => opt.value === value || opt.label === value
-    ) || null;
+  // Load options on mount and when fetchOptions changes
+  useEffect(() => {
+    const loadInitialOptions = async () => {
+      if (useApiFiltering && fetchOptions) {
+        setIsLoading(true);
+        try {
+          const result = await fetchOptions();
+          setLoadedOptions(formatOptions(result));
+        } catch (err) {
+          console.error('Failed to load options:', err);
+          setLoadedOptions([]);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setLoadedOptions(formatOptions(options));
+      }
+    };
+
+    loadInitialOptions();
+  }, [fetchOptions, options, useApiFiltering]);
+
+  const formatOptions = (opts) =>
+    (opts || []).map((opt) =>
+      typeof opt === 'string'
+        ? { label: opt, value: opt }
+        : {
+          label: opt.label || opt.Label || opt.name || opt.value || String(opt),
+          value: opt.value || opt.id || opt.Value || opt,
+        }
+    );
+
+  const selectedOption =
+    loadedOptions.find((opt) => opt.value === value || opt.label === value) ||
+    null;
 
   const customStyles = {
     control: (provided, state) => ({
@@ -41,21 +67,24 @@ export default function SimpleSelect({
       backgroundColor: state.isSelected
         ? '#3b82f6'
         : state.isFocused
-        ? '#eff6ff'
-        : 'white',
+          ? '#eff6ff'
+          : 'white',
       color: state.isSelected ? 'white' : '#374151',
     }),
-    loadingIndicator: (provided) => ({ ...provided, color: '#6b7280' }),
   };
 
   return (
     <Select
-      options={formattedOptions}
-      value={selectedValue}
+      options={loadedOptions}
+      value={selectedOption}
       onChange={(selected) => onChange(selected?.value)}
       isDisabled={isDisabled}
-      isSearchable={false}
+      isLoading={isLoading}
       styles={customStyles}
+      placeholder='Select...'
+      noOptionsMessage={() => 'No options available'}
+      loadingMessage={() => 'Loading options...'}
+      isSearchable={false}
     />
   );
 }

@@ -97,7 +97,8 @@ export default function ManageActivityOutcome() {
     }
   };
 
-  const formData = isEditMode && data ? mapActivityOutcomeDataToForm(data) : {};
+  const formData =
+    isEditMode && data ? mapActivityOutcomeDataToForm(data?.data) : {};
 
   return (
     <div className='px-4'>

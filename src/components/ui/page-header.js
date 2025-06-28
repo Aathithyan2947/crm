@@ -10,7 +10,7 @@ export default function PageHeader({ title, showBackButton = false }) {
       {showBackButton && (
         <button
           onClick={() => router.back()}
-          className='p-1 rounded-full bg-white border border-deepViolet text-deepViolet hover:bg-deepViolet hover:text-white transition-all'
+          className='p-1 cursor-pointer rounded-full bg-white border border-deepViolet text-deepViolet hover:bg-deepViolet hover:text-white transition-all'
         >
           <ArrowLeft size={20} />
         </button>

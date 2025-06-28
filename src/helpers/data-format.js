@@ -14,9 +14,7 @@ export const mapActivityOutcomeDataToForm = (data) => {
 
   return {
     ...data,
-    outcomes: data.outcomes?.map((outcome) => ({ value: outcome.name })) || [
-      { value: '' },
-    ],
+    outcomes: data.outcomes?.map((outcome) => outcome.name) || [''],
     activity_type_ids: data.types?.map((type) => type.id) || [],
   };
 };

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
+import { storage } from './localstorage';
 
 const axiosInstance = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_API_ENDPOINT}/api/v1`,
@@ -24,13 +24,32 @@ axiosInstance.generateCancelToken = (key) => {
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('token');
+    const token = storage.get('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // If error is 401 (Unauthorized)
+    if (error.response?.status === 401) {
+      // Clear local storage
+      storage.remove('auth_token');
+      storage.clear(); // optional: clear everything
+
+      // Redirect to login page
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth/login';
+      }
+    }
+
+    return Promise.reject(error);
+  }
 );
 
 export default axiosInstance;

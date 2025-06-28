@@ -21,7 +21,7 @@ export default function ActivityOutcomePage() {
     },
   });
 
-  const mappedOutcomeGroups = (data?.data || []).map((item) => ({
+  const mappedOutcomeGroups = (data?.data?.data || []).map((item) => ({
     ...item,
     types: item.types?.map((t) => t.name).join(', ') || '-',
     outcomes: item.outcomes?.map((o) => o.name).join(', ') || '-',

@@ -8,9 +8,13 @@ export const getModelFields = (model) => {
   return axiosInstance.get(`/config/dropdown_fields?model=${model}`);
 };
 
-export const getDropdownConfigs = (modelName) => {
+export const getDropdownConfigs = (modelName, attribute) => {
+  const params = new URLSearchParams({ model_name: modelName });
+  if (attribute !== undefined) {
+    params.append('attribute', attribute);
+  }
   return axiosInstance.get(
-    `/app_config/list_app_configurations?model_name=${modelName}`
+    `/app_config/list_app_configurations?${params.toString()}`
   );
 };
 

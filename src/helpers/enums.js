@@ -1,12 +1,10 @@
 import {
   Activity,
-  Award,
   BellIcon,
   ListChecks,
   SignalHigh,
   FilesIcon,
   Settings,
-  User,
   UserCircle,
   Users,
   Goal,

@@ -24,9 +24,13 @@ import { CSS } from '@dnd-kit/utilities';
 import axios from 'axios';
 import SimpleSelect from '@/components/ui/simple-dropdown';
 import ToggleSwitch from '@/components/ui/toggle-switch';
-import { createDropdownConfig, getDropdownConfigs, getDropdownModels, getModelFields, updateDropdownConfig } from '@/services/customization-api';
-
-const API_BASE_URL = 'http://192.168.0.138:8080/api/v1';
+import {
+  createDropdownConfig,
+  getDropdownConfigs,
+  getDropdownModels,
+  getModelFields,
+  updateDropdownConfig,
+} from '@/services/customization-api';
 
 export default function DropdownConfigurationManager() {
   const [selectedModel, setSelectedModel] = useState('');
@@ -60,7 +64,8 @@ export default function DropdownConfigurationManager() {
 
   const { data: configData, refetch: refetchConfig } = useQuery({
     queryKey: ['dropdownConfigs', selectedModel],
-    queryFn: () => getDropdownConfigs(selectedModel).then((res) => res.data.data),
+    queryFn: () =>
+      getDropdownConfigs(selectedModel).then((res) => res.data.data),
     enabled: !!selectedModel,
   });
 
@@ -68,12 +73,12 @@ export default function DropdownConfigurationManager() {
   const existingOptions =
     selectedAttribute && configData?.attributes?.[selectedAttribute]
       ? configData.attributes[selectedAttribute].map((opt) => ({
-        id: opt.id?.toString() || `${opt.config_key}-${opt.config_value}`,
-        config_key: opt.config_key,
-        config_value: opt.config_value,
-        display_order: opt.display_order || 0,
-        is_active: opt.is_active !== false,
-      }))
+          id: opt.id?.toString() || `${opt.config_key}-${opt.config_value}`,
+          config_key: opt.config_key,
+          config_value: opt.config_value,
+          display_order: opt.display_order || 0,
+          is_active: opt.is_active !== false,
+        }))
       : [];
 
   const hasExistingConfig = !!existingOptions.length;
@@ -214,14 +219,14 @@ function EditableOptionsList({ initialOptions, onSave, isSaving }) {
     initialOptions.length > 0
       ? initialOptions
       : [
-        {
-          id: 'new-0',
-          config_key: '',
-          config_value: '',
-          display_order: 0,
-          is_active: true,
-        },
-      ]
+          {
+            id: 'new-0',
+            config_key: '',
+            config_value: '',
+            display_order: 0,
+            is_active: true,
+          },
+        ]
   );
   const [activeId, setActiveId] = useState(null);
   const [newOptionValue, setNewOptionValue] = useState('');
@@ -445,8 +450,9 @@ function SortableOption({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 p-3 bg-white ${isDragging ? 'bg-blue-50 shadow-md' : ''
-        } ${disabled ? 'opacity-50' : ''}`}
+      className={`flex items-center gap-3 p-3 bg-white ${
+        isDragging ? 'bg-blue-50 shadow-md' : ''
+      } ${disabled ? 'opacity-50' : ''}`}
     >
       <button
         {...attributes}
@@ -485,12 +491,13 @@ function SortableOption({
 function OptionItem({ option, isDragging }) {
   return (
     <div
-      className={`flex items-center gap-3 p-3 bg-white shadow-lg ${isDragging ? 'ring-1 ring-blue-500' : ''
-        }`}
+      className={`flex items-center gap-3 p-3 bg-white shadow-lg ${
+        isDragging ? 'ring-1 ring-blue-500' : ''
+      }`}
     >
       <GripVertical className='h-4 w-4 text-gray-400' />
       <div className='flex-1 px-3 py-2'>{option.config_value}</div>
-      <ToggleSwitch value={option.is_active} onChange={() => { }} isDisabled />
+      <ToggleSwitch value={option.is_active} onChange={() => {}} isDisabled />
     </div>
   );
 }
@@ -515,7 +522,7 @@ function ReadOnlyOptionsList({ options }) {
                 <div className='flex-1'>{option.config_value}</div>
                 <ToggleSwitch
                   value={option.is_active}
-                  onChange={() => { }}
+                  onChange={() => {}}
                   isDisabled
                 />
               </div>

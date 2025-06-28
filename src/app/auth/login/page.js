@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import logo from '../../../../public/logo.svg';
 import { initiateLogin, verifyAuth, resetPassword } from '@/services/auth-api';
 import Image from 'next/image';
+import { Eye, EyeOffIcon } from 'lucide-react';
 
 export default function LoginPage() {
   const [step, setStep] = useState('email'); // 'email' | 'auth'
@@ -17,6 +18,8 @@ export default function LoginPage() {
   const [isVerified, setIsVerified] = useState(null); // null | true | false
   const [loading, setLoading] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const router = useRouter();
   const { login, token } = useAuth();
@@ -160,18 +163,29 @@ export default function LoginPage() {
 
             {isVerified ? (
               <>
-                <div>
+                <div className='relative'>
                   <label className='block text-sm font-medium text-gray-700 mb-1'>
                     Password
                   </label>
                   <input
-                    type='password'
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder='Password'
                     required
-                    className='w-full border border-gray-300 rounded-xl px-4 py-3 text-sm'
+                    className='w-full border border-gray-300 rounded-xl px-4 py-3 text-sm pr-10'
                   />
+                  <button
+                    type='button'
+                    className='absolute right-3 top-9.5 text-gray-500 hover:text-gray-700'
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOffIcon size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
                 </div>
                 <button
                   type='submit'
@@ -204,18 +218,29 @@ export default function LoginPage() {
                     className='w-full border border-gray-300 rounded-xl px-4 py-3 text-sm'
                   />
                 </div>
-                <div>
+                <div className='relative'>
                   <label className='block text-sm font-medium text-gray-700 mb-1'>
                     New Password
                   </label>
                   <input
-                    type='password'
+                    type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder='New password'
                     required
-                    className='w-full border border-gray-300 rounded-xl px-4 py-3 text-sm'
+                    className='w-full border border-gray-300 rounded-xl px-4 py-3 text-sm pr-10'
                   />
+                  <button
+                    type='button'
+                    className='absolute right-3 top-9.5 text-gray-500 hover:text-gray-700'
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? (
+                      <EyeOffIcon size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
                 </div>
                 <button
                   type='submit'

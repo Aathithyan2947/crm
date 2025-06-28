@@ -11,27 +11,22 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const storedToken = storage.get('auth_token');
-    const storedUser = storage.get('auth_user');
 
     if (storedToken) {
       setToken(storedToken);
-      setUser(storedUser);
     }
     setIsLoading(false);
   }, []);
 
   const login = (userData, token) => {
-    setUser(userData);
     setToken(token);
     storage.set('auth_token', token);
-    storage.set('auth_user', userData);
   };
 
   const logout = () => {
     setUser(null);
     setToken(null);
     storage.remove('auth_token');
-    storage.remove('auth_user');
   };
 
   return (
