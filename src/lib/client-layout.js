@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import Loader from '@/components/ui/loader';
 import { AuthProvider, useAuth } from '@/context/auth-context';
-import { EmployeeProvider } from '@/context/employees-context';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,10 +22,8 @@ export default function ClientLayout({ children }) {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
-        <EmployeeProvider>
-          <AuthGuard>{children}</AuthGuard>
-          <Toaster position='top-center' reverseOrder={false} />
-        </EmployeeProvider>
+        <AuthGuard>{children}</AuthGuard>
+        <Toaster position='top-center' reverseOrder={false} />
       </QueryClientProvider>
     </AuthProvider>
   );

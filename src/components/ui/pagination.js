@@ -20,6 +20,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
   return (
     <div className='flex justify-center items-center gap-1 mt-3 text-sm'>
       <button
+        aria-labelledby='prev button'
         className='px-2.5 cursor-pointer py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed'
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
@@ -29,6 +30,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
 
       {pages.map((page) => (
         <button
+          aria-labelledby='page number button'
           key={`page-${page}`}
           className={`w-8 h-8 flex cursor-pointer items-center justify-center rounded-md border border-gray-300 transition-all duration-200 text-sm ${page === currentPage
             ? 'bg-deepViolet text-white border-deepViolet scale-105 shadow'
@@ -41,6 +43,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       ))}
 
       <button
+        aria-labelledby='next button'
         className='px-2.5 cursor-pointer py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed'
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}

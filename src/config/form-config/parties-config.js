@@ -220,7 +220,7 @@ export const partyFormConfig = [
         type: 'text',
       },
       {
-        name: 'role',
+        name: 'party_user_role',
         label: 'Role',
         type: 'simple-select',
         options: [], // Will be fetched dynamically

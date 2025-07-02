@@ -19,22 +19,20 @@ export default function DynamicInputGroup({
 }) {
   return (
     <div className='space-y-4'>
-      {fields.map((index) => (
-        <div key={index} className='flex flex-col gap-3 p-4 border rounded-md'>
+      {fields.map((field, index) => (
+        <div key={field.id || index} className='flex flex-col gap-3 p-4 border rounded-md'>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
             {template.map((t) => {
-              const defaultValue = t.type === 'toggle'
-                ? (t.defaultValue !== undefined ? t.defaultValue : false)
-                : t.type === 'number'
-                  ? 0
-                  : '';
+              const fieldValue = fields[index]?.[t.name] ??
+                (t.type === 'toggle' ? (t.defaultValue !== undefined ? t.defaultValue : false) :
+                  t.type === 'number' ? 0 : '');
 
               return (
                 <Controller
                   key={`${name}.${index}.${t.name}`}
                   control={control}
                   name={`${name}.${index}.${t.name}`}
-                  defaultValue={defaultValue}
+                  defaultValue={fieldValue}
                   render={({ field: controllerField }) => (
                     <div className='flex flex-col'>
                       <label className='mb-1 text-sm text-gray-600'>
@@ -73,7 +71,7 @@ export default function DynamicInputGroup({
                       ) : (
                         <input
                           type={t.type === 'number' ? 'number' : 'text'}
-                          value={controllerField.value}
+                          value={controllerField.value || ''}
                           onChange={(e) => {
                             const value = t.type === 'number'
                               ? Number(e.target.value)
@@ -83,7 +81,8 @@ export default function DynamicInputGroup({
                           }}
                           disabled={!isEditing}
                           className={`border rounded-md px-3 py-2 text-sm focus:outline-none ${!isEditing ? 'bg-gray-100 cursor-not-allowed' : ''
-                            } ${error?.[index]?.[t.name] ? 'border-red-500' : 'border-gray-300'}`}
+                            } ${error?.[index]?.[t.name] ? 'border-red-500' : 'border-gray-300'
+                            }`}
                         />
                       )}
 

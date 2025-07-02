@@ -454,6 +454,7 @@ export default function CustomForm({
         </h2>
         <div className='flex gap-2'>
           <button
+            aria-labelledby='form button'
             type='button'
             onClick={() =>
               isEditing ? handleSubmit(submitHandler)() : setIsEditing(true)

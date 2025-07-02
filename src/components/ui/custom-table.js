@@ -129,6 +129,7 @@ export default function CustomTable({
         <div className='flex gap-2'>
           {filterConfig.length > 0 && (
             <button
+              aria-labelledby='filter button'
               onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center gap-1 text-xs px-3 cursor-pointer py-2 border rounded-3xl hover:scale-105 transition-all duration-300 ${showFilters
                 ? 'bg-deepViolet text-white border-deepViolet'

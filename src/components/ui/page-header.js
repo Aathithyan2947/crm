@@ -15,7 +15,7 @@ export default function PageHeader({ title, showBackButton = false }) {
           <ArrowLeft size={20} />
         </button>
       )}
-      <h1 className='text-black font-bold text-xl'>{title}</h1>
+      <title className='text-black font-bold text-xl'>{title}</title>
     </div>
   );
 }
