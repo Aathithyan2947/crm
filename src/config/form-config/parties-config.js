@@ -218,6 +218,12 @@ export const partyFormConfig = [
         name: 'contact_number',
         label: 'Contact Number',
         type: 'text',
+        validation: {
+          pattern: {
+            value: /^[0-9]{10}$/,
+            message: 'Must be 10 digits',
+          },
+        },
       },
       {
         name: 'party_user_role',

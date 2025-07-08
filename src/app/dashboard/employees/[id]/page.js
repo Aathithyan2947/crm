@@ -18,6 +18,7 @@ import {
 import { mapEmployeeDataToForm } from '@/helpers/data-format';
 import { makeCancelableFetcher } from '@/lib/cancel-token';
 import { DASHBOARD_ROUTES } from '@/helpers/enums';
+import { getPartyNames } from '@/services/parties-api';
 
 export default function ManageEmployee() {
   const { id } = useParams();
@@ -72,6 +73,19 @@ export default function ManageEmployee() {
             label: group.name,
             value: group.id,
           }));
+        }
+      ),
+      getPartyNames: makeCancelableFetcher(
+        'parties',
+        async (searchValue, config) => {
+          const res = await getPartyNames(
+            { search: searchValue },
+            config
+          );
+          return res?.data?.data?.map((party) => ({
+            label: `${party.party_name} (${party.party_code})`,
+            value: party.id
+          }))
         }
       ),
       getSuperiorName: makeCancelableFetcher(

@@ -4,7 +4,6 @@ import CustomForm from '@/components/ui/custom-form';
 import CustomTable from '@/components/ui/custom-table';
 import PageHeader from '@/components/ui/page-header';
 import { employeeGroupFormConfig } from '@/config/form-config/employees-group-config';
-import { User } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -98,7 +97,7 @@ export default function ManageEmployeeGroup() {
             showActions={false}
             currPage={1}
             totalPages={1}
-            setCurrPage={() => {}}
+            setCurrPage={() => { }}
           />
         </div>
       )}

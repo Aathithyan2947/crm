@@ -39,6 +39,47 @@ export function buildSchema(formDetails) {
         }
         break;
 
+      case 'number':
+        schema = z.union([
+          z.number(),
+          z.string().transform((val, ctx) => {
+            const parsed = parseFloat(val);
+            if (isNaN(parsed)) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.invalid_type,
+                expected: 'number',
+                received: 'string',
+              });
+              return z.NEVER;
+            }
+            return parsed;
+          }),
+        ]);
+
+        // Apply min/max validation if specified
+        if (field.validation?.min !== undefined) {
+          schema = schema.refine(
+            (val) => val >= field.validation.min,
+            `${field.label} must be at least ${field.validation.min}`
+          );
+        }
+        if (field.validation?.max !== undefined) {
+          schema = schema.refine(
+            (val) => val <= field.validation.max,
+            `${field.label} must be at most ${field.validation.max}`
+          );
+        }
+
+        if (field.validation?.required) {
+          schema = schema.refine(
+            (val) => val !== null && val !== undefined,
+            `${field.label} is required`
+          );
+        } else {
+          schema = schema.optional().nullable();
+        }
+        break;
+
       case 'dynamic-input':
       case 'dynamic-input-group':
         if (field.fields) {
@@ -55,7 +96,21 @@ export function buildSchema(formDetails) {
                 fieldSchema = z.boolean();
                 break;
               case 'number':
-                fieldSchema = z.number();
+                fieldSchema = z.union([
+                  z.number(),
+                  z.string().transform((val, ctx) => {
+                    const parsed = parseFloat(val);
+                    if (isNaN(parsed)) {
+                      ctx.addIssue({
+                        code: z.ZodIssueCode.invalid_type,
+                        expected: 'number',
+                        received: 'string',
+                      });
+                      return z.NEVER;
+                    }
+                    return parsed;
+                  }),
+                ]);
                 break;
               default: // text, text-area, etc.
                 fieldSchema = z.string();
@@ -78,7 +133,10 @@ export function buildSchema(formDetails) {
               fieldSchema = fieldSchema.optional();
 
               // Set default value for toggle if specified
-              if (nestedField.type === 'toggle' && nestedField.defaultValue !== undefined) {
+              if (
+                nestedField.type === 'toggle' &&
+                nestedField.defaultValue !== undefined
+              ) {
                 fieldSchema = fieldSchema.default(nestedField.defaultValue);
               }
             }
@@ -97,7 +155,9 @@ export function buildSchema(formDetails) {
           schema = z
             .array(
               z.object({
-                value: z.string().min(1, `${field.label} items cannot be empty`),
+                value: z
+                  .string()
+                  .min(1, `${field.label} items cannot be empty`),
               })
             )
             .optional()
@@ -118,15 +178,6 @@ export function buildSchema(formDetails) {
             (val) => val && val.length > 0,
             `${field.label} is required`
           );
-        } else {
-          schema = schema.optional();
-        }
-        break;
-
-      case 'number':
-        schema = z.number();
-        if (field.validation?.required) {
-          schema = schema.min(0, `${field.label} must be positive`);
         } else {
           schema = schema.optional();
         }
@@ -158,8 +209,9 @@ export function buildSchema(formDetails) {
           if (field.showIf(formValues) && !schema.safeParse(val).success) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: `${field.label
-                } is required when ${field.showIf.toString()} condition is met`,
+              message: `${
+                field.label
+              } is required when ${field.showIf.toString()} condition is met`,
             });
           }
         });

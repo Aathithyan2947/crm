@@ -8,6 +8,10 @@ export const updateParty = (id, data) => {
   return axiosInstance.put(`/party/update_party?id=${id}`, data);
 };
 
+export const getPartyNames = () => {
+  return axiosInstance.get('/party/get_party_names')
+}
+
 export const getPartiesListing = (params) => {
   return axiosInstance.get('/party/list_parties', {
     params,

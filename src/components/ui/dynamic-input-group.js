@@ -1,6 +1,6 @@
 'use client';
 
-import { Trash2, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import SimpleSelect from './simple-dropdown';
 import { Controller } from 'react-hook-form';
 import ToggleSwitch from './toggle-switch';
@@ -9,7 +9,6 @@ export default function DynamicInputGroup({
   fields = [],
   template = [],
   onAddField,
-  onRemoveField,
   onChange,
   isEditing,
   error,
@@ -17,6 +16,20 @@ export default function DynamicInputGroup({
   fetchOptionsMap,
   name,
 }) {
+  // Function to check if field is a phone number field
+  const isPhoneNumberField = (fieldName) => {
+    return ['contact_number', 'phone_number'].includes(fieldName);
+  };
+
+  // Default validation for phone number fields
+  const getPhoneNumberValidation = () => ({
+    pattern: {
+      value: /^[0-9]{10}$/,
+      message: 'Must be exactly 10 digits',
+    },
+    required: 'Contact number is required',
+  });
+
   return (
     <div className='space-y-4'>
       {fields.map((field, index) => (
@@ -27,17 +40,23 @@ export default function DynamicInputGroup({
                 (t.type === 'toggle' ? (t.defaultValue !== undefined ? t.defaultValue : false) :
                   t.type === 'number' ? 0 : '');
 
+              // Apply phone number validation if field name matches
+              const validation = isPhoneNumberField(t.name)
+                ? { ...t.validation, ...getPhoneNumberValidation() }
+                : t.validation;
+
               return (
                 <Controller
                   key={`${name}.${index}.${t.name}`}
                   control={control}
                   name={`${name}.${index}.${t.name}`}
                   defaultValue={fieldValue}
+                  rules={validation}
                   render={({ field: controllerField }) => (
                     <div className='flex flex-col'>
                       <label className='mb-1 text-sm text-gray-600'>
                         {t.label}
-                        {t.validation?.required && (
+                        {validation?.required && (
                           <span className='text-red-500 ml-1'>*</span>
                         )}
                       </label>
@@ -73,9 +92,17 @@ export default function DynamicInputGroup({
                           type={t.type === 'number' ? 'number' : 'text'}
                           value={controllerField.value || ''}
                           onChange={(e) => {
-                            const value = t.type === 'number'
-                              ? Number(e.target.value)
-                              : e.target.value;
+                            // For phone numbers, only allow numeric input
+                            let value = e.target.value;
+                            if (isPhoneNumberField(t.name)) {
+                              value = value.replace(/\D/g, ''); // Remove non-digit characters
+                              value = value.slice(0, 10); // Limit to 10 digits
+                            } else if (t.type === 'number') {
+                              value = Number(e.target.value);
+                            } else {
+                              value = e.target.value;
+                            }
+
                             controllerField.onChange(value);
                             onChange(index, t.name, value);
                           }}
@@ -83,6 +110,8 @@ export default function DynamicInputGroup({
                           className={`border rounded-md px-3 py-2 text-sm focus:outline-none ${!isEditing ? 'bg-gray-100 cursor-not-allowed' : ''
                             } ${error?.[index]?.[t.name] ? 'border-red-500' : 'border-gray-300'
                             }`}
+                          // Add input mode for better mobile keyboard
+                          inputMode={isPhoneNumberField(t.name) ? 'numeric' : undefined}
                         />
                       )}
 
@@ -97,17 +126,6 @@ export default function DynamicInputGroup({
               );
             })}
           </div>
-
-          {isEditing && (
-            <button
-              type='button'
-              onClick={() => onRemoveField(index)}
-              className='self-end flex items-center gap-1 text-white bg-red-500 px-3 py-2 rounded-md text-sm hover:scale-105 transition-all duration-200'
-            >
-              <Trash2 className='h-4 w-4' />
-              Remove
-            </button>
-          )}
         </div>
       ))}
 

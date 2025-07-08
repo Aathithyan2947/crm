@@ -3,7 +3,7 @@
 import CustomForm from '@/components/ui/custom-form';
 import PageHeader from '@/components/ui/page-header';
 import { activityTypeFormConfig } from '@/config/form-config/activity-type-config';
-import { DASHBOARD_ROUTES } from '@/helpers/enums';
+import { SETTINGS_MODULE_ROUTES } from '@/helpers/enums';
 import {
   createActivityType,
   getActivityType,
@@ -33,7 +33,7 @@ export default function ManageActivityType() {
       queryClient.invalidateQueries({
         queryKey: ['activity_type'],
       });
-      router.push(DASHBOARD_ROUTES.ACTIVITY_TYPE);
+      router.push(SETTINGS_MODULE_ROUTES.ACTIVITY_TYPE);
     },
     onError: (err) => {
       toast.error(

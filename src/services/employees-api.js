@@ -18,6 +18,10 @@ export const updateEmployee = (employeeId, data) => {
   return axiosInstance.put(`/employee/${employeeId}/update_employee`, data);
 };
 
+export const getEmployeeNames = () => {
+  return axiosInstance.get('/employee/get_employee_names');
+};
+
 export const getSuperiorEmployeeFilter = (params = {}, config = {}) => {
   return axiosInstance.get('/employee/list_superior_employees', {
     params,

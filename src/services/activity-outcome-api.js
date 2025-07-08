@@ -14,6 +14,12 @@ export const getActivityOutcome = (activity_id) => {
   );
 };
 
+export const getActivityOutcomeByActivityType = (id) => {
+  return axiosInstance.get(
+    `/activity_outcome/activity_outcome_by_activity_type?activity_type_id=${id}`
+  );
+};
+
 export const updateActivityOutcome = (activity_id, data) => {
   return axiosInstance.put(
     `/activity_outcome/${activity_id}/update_activity_outcome`,

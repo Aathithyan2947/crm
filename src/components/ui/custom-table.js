@@ -8,6 +8,15 @@ import TableSkeleton from './table-skeleton-loading';
 import CustomFilter from './custom-filter';
 import { useState } from 'react';
 
+const statusStyles = {
+  active: 'bg-green-100 text-green-800',
+  completed: 'bg-blue-100 text-blue-800',
+  pending: 'bg-yellow-100 text-yellow-800',
+  'over due': 'bg-red-100 text-red-800',
+  overdue: 'bg-red-100 text-red-800', // optional alias
+  default: 'bg-gray-100 text-gray-800',
+};
+
 export default function CustomTable({
   tableName,
   buttonTitle,
@@ -30,11 +39,12 @@ export default function CustomTable({
     data?.length > 0 ? Object.keys(data[0]).filter((key) => key !== 'id') : [];
 
   const StatusChip = ({ status }) => {
-    const isActive = status === 'active';
+    const normalizedStatus = status?.toLowerCase(); // safety and normalization
+    const chipStyle = statusStyles[normalizedStatus] || statusStyles.default;
+
     return (
       <span
-        className={`inline-flex items-center justify-center min-w-[80px] h-7 px-3 py-1.5 rounded-full text-[10px] font-medium text-center uppercase ${isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }`}
+        className={`inline-flex items-center justify-center min-w-[80px] h-7 px-3 py-1.5 rounded-full text-[10px] font-medium text-center uppercase ${chipStyle}`}
       >
         {status}
       </span>

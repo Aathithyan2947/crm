@@ -19,66 +19,89 @@ const transformFormData = (values, formDetails, originalData = {}) => {
     if (!fieldConfig) return acc;
 
     if (fieldConfig.type === 'toggle') {
-      acc[key] = fieldConfig.name === 'status'
-        ? value ? 'active' : 'inactive'
-        : Boolean(value);
+      acc[key] =
+        fieldConfig.name === 'status'
+          ? value
+            ? 'active'
+            : 'inactive'
+          : Boolean(value);
     } else if (fieldConfig.type === 'dynamic-input-group') {
-      // Get original array data for this field
       const originalArrayData = originalData[key] || [];
-
       acc[key] = Array.isArray(value)
         ? value.map((item, index) => {
-          const transformedItem = {};
-
-          // 1. Handle all form fields from template
-          fieldConfig.fields?.forEach((f) => {
-            const fieldName = f.name === 'role' ? 'party_user_role' : f.name;
-            transformedItem[fieldName] = f.type === 'toggle'
-              ? item[f.name] ? 'active' : 'inactive'
-              : item[f.name] || '';
-          });
-
-          // 2. Preserve the ID from original data if it exists at this index
-          if (originalArrayData[index]?.id) {
-            transformedItem.id = originalArrayData[index].id;
-          }
-
-          return transformedItem;
-        })
+            const transformedItem = {};
+            fieldConfig.fields?.forEach((f) => {
+              const fieldName = f.name === 'role' ? 'party_user_role' : f.name;
+              if (f.type === 'number') {
+                transformedItem[fieldName] =
+                  item[f.name] !== undefined && item[f.name] !== null
+                    ? Number(item[f.name])
+                    : null;
+              } else if (f.type === 'toggle') {
+                transformedItem[fieldName] = item[f.name]
+                  ? 'active'
+                  : 'inactive';
+              } else {
+                transformedItem[fieldName] = item[f.name] || '';
+              }
+            });
+            if (originalArrayData[index]?.id) {
+              transformedItem.id = originalArrayData[index].id;
+            }
+            return transformedItem;
+          })
         : [];
+    } else if (fieldConfig.type === 'number') {
+      acc[key] =
+        value !== null && value !== undefined && value !== ''
+          ? Number(value)
+          : null;
     } else {
       acc[key] = value;
     }
-
     return acc;
   }, {});
 };
-
 const getDefaultValues = (formDetails, data) => {
   return formDetails.reduce((acc, field) => {
     if (data && data[field.name] !== undefined) {
       if (field.type === 'toggle') {
-        acc[field.name] = field.name === 'status'
-          ? data[field.name] === 'active' || data[field.name] === true
-          : Boolean(data[field.name]);
+        acc[field.name] =
+          field.name === 'status'
+            ? data[field.name] === 'active' || data[field.name] === true
+            : Boolean(data[field.name]);
       } else if (field.type === 'dynamic-input-group' && field.fields) {
         acc[field.name] = Array.isArray(data[field.name])
           ? data[field.name].map((item) => {
-            const newItem = {};
-            field.fields.forEach((f) => {
-              const sourceField = f.name === 'role' ? 'party_user_role' : f.name;
-              newItem[f.name] = f.type === 'toggle'
-                ? item[sourceField] === 'active' || item[sourceField] === true
-                : item[sourceField] || '';
-            });
-
-            // 2. Preserve the ID
-            if (item.id) {
-              newItem.id = item.id;
-            }
-            return newItem;
-          })
+              const newItem = {};
+              field.fields.forEach((f) => {
+                const sourceField =
+                  f.name === 'role' ? 'party_user_role' : f.name;
+                if (f.type === 'number') {
+                  newItem[f.name] =
+                    item[sourceField] !== undefined &&
+                    item[sourceField] !== null
+                      ? Number(item[sourceField])
+                      : f.defaultValue || 0;
+                } else if (f.type === 'toggle') {
+                  newItem[f.name] =
+                    item[sourceField] === 'active' ||
+                    item[sourceField] === true;
+                } else {
+                  newItem[f.name] = item[sourceField] || '';
+                }
+              });
+              if (item.id) {
+                newItem.id = item.id;
+              }
+              return newItem;
+            })
           : [];
+      } else if (field.type === 'number') {
+        acc[field.name] =
+          data[field.name] !== null && data[field.name] !== undefined
+            ? Number(data[field.name])
+            : field.defaultValue || 0;
       } else {
         acc[field.name] = data[field.name];
       }
@@ -87,6 +110,10 @@ const getDefaultValues = (formDetails, data) => {
         acc[field.name] = field.name === 'status' ? true : false;
       } else if (field.type === 'dynamic-input-group') {
         acc[field.name] = [];
+      } else if (field.type === 'number') {
+        acc[field.name] = field.defaultValue || 0;
+      } else if (field.type === 'time') {
+        acc[field.name] = '';
       }
     }
     return acc;
@@ -129,7 +156,6 @@ export default function CustomForm({
 
   useEffect(() => {
     const hasData = Object.keys(data || {}).length > 0;
-
     if (hasData) {
       const formattedData = { ...data };
       if (formattedData.status !== undefined) {
@@ -150,10 +176,10 @@ export default function CustomForm({
   const submitHandler = async (values) => {
     const submissionData = isCreateMode
       ? Object.fromEntries(
-        Object.entries(values).filter(
-          ([key]) => !formDetails.find((f) => f.name === key)?.hideInCreate
+          Object.entries(values).filter(
+            ([key]) => !formDetails.find((f) => f.name === key)?.hideInCreate
+          )
         )
-      )
       : values;
 
     const transformedData = transformFormData(
@@ -164,10 +190,8 @@ export default function CustomForm({
 
     try {
       const submitResult = onSubmit(transformedData);
-
       if (submitResult && typeof submitResult.then === 'function') {
         const response = await submitResult;
-
         if (!isCreateMode && response) {
           const newData = response.data || response;
           reset(getDefaultValues(filteredFormDetails, newData));
@@ -177,7 +201,6 @@ export default function CustomForm({
           getDefaultValues(filteredFormDetails, { ...data, ...transformedData })
         );
       }
-
       setIsEditing(false);
     } catch (error) {
       console.error('Form submission error:', error);
@@ -187,12 +210,10 @@ export default function CustomForm({
   const { toggleFields, regularFields } = useMemo(() => {
     const toggles = [];
     const regular = [];
-
     filteredFormDetails.forEach((field) => {
       if (field.showIf && !field.showIf(formValues)) return;
       field.type === 'toggle' ? toggles.push(field) : regular.push(field);
     });
-
     return { toggleFields: toggles, regularFields: regular };
   }, [filteredFormDetails, formValues]);
 
@@ -201,17 +222,21 @@ export default function CustomForm({
     const isRequired = field.validation?.required;
     const isPermanentlyDisabled = field.readonly && !isCreateMode;
 
-    const baseInputClasses = `border rounded-md px-3 py-2 text-sm focus:outline-none ${isError ? 'border-red-500' : 'border-gray-300'
-      } ${!isEditing || isPermanentlyDisabled
+    const baseInputClasses = `border rounded-md px-3 py-2 text-sm focus:outline-none ${
+      isError ? 'border-red-500' : 'border-gray-300'
+    } ${
+      !isEditing || isPermanentlyDisabled
         ? 'bg-gray-100 cursor-not-allowed'
         : ''
-      }`;
+    }`;
 
     switch (field.type) {
       case 'text':
       case 'text-area':
       case 'date':
+      case 'time':
       case 'color':
+      case 'number':
         return (
           <div className='flex flex-col'>
             <label className='mb-1 font-medium text-sm text-gray-600'>
@@ -222,16 +247,48 @@ export default function CustomForm({
               type={
                 field.type === 'date'
                   ? 'date'
+                  : field.type === 'time'
+                  ? 'time'
                   : field.type === 'color'
-                    ? 'color'
-                    : 'text'
+                  ? 'color'
+                  : 'text'
               }
               {...register(field.name, { required: isRequired })}
               disabled={!isEditing || isPermanentlyDisabled}
-              className={`${baseInputClasses} ${field.type === 'text-area' ? 'resize-none' : ''
-                } ${field.type === 'color' ? 'h-10 w-16 p-1 cursor-pointer' : ''
-                }`}
+              className={`${baseInputClasses} ${
+                field.type === 'text-area' ? 'resize-none' : ''
+              } ${
+                field.type === 'color' ? 'h-10 w-16 p-1 cursor-pointer' : ''
+              }`}
               rows={field.type === 'text-area' ? 4 : undefined}
+              aria-required={isRequired}
+            />
+            {isError && (
+              <p className='pt-1 text-xs text-red-500'>{isError.message}</p>
+            )}
+          </div>
+        );
+
+      case 'number':
+        return (
+          <div className='flex flex-col'>
+            <label className='mb-1 font-medium text-sm text-gray-600'>
+              {field.label}
+              {isRequired && <span className='text-red-500 ml-1'>*</span>}
+            </label>
+            <input
+              type='number'
+              {...register(field.name, {
+                required: isRequired,
+                valueAsNumber: true, // This ensures the value is parsed as number
+                min: field.validation?.min,
+                max: field.validation?.max,
+              })}
+              disabled={!isEditing || isPermanentlyDisabled}
+              className={baseInputClasses}
+              step={field.step || 1}
+              min={field.validation?.min}
+              max={field.validation?.max}
               aria-required={isRequired}
             />
             {isError && (
@@ -365,7 +422,9 @@ export default function CustomForm({
               <div className='flex flex-col'>
                 <label className='mb-1 font-medium text-sm text-gray-600'>
                   {field.label}
-                  {field.validation?.required && <span className='text-red-500 ml-1'>*</span>}
+                  {field.validation?.required && (
+                    <span className='text-red-500 ml-1'>*</span>
+                  )}
                 </label>
                 <DynamicInputGroup
                   name={field.name}
@@ -376,14 +435,19 @@ export default function CustomForm({
                     const newItem = field.fields.reduce(
                       (obj, f) => ({
                         ...obj,
-                        [f.name]: f.type === 'toggle'
-                          ? (f.defaultValue !== undefined ? f.defaultValue : false)
-                          : ''
+                        [f.name]:
+                          f.type === 'toggle'
+                            ? f.defaultValue !== undefined
+                              ? f.defaultValue
+                              : false
+                            : '',
                       }),
                       {}
                     );
-                    // New items won't have an ID
-                    controllerField.onChange([...(controllerField.value || []), newItem]);
+                    controllerField.onChange([
+                      ...(controllerField.value || []),
+                      newItem,
+                    ]);
                   }}
                   onRemoveField={(index) => {
                     const newValue = [...(controllerField.value || [])];
@@ -394,8 +458,7 @@ export default function CustomForm({
                     const newValue = [...(controllerField.value || [])];
                     newValue[index] = {
                       ...newValue[index],
-                      [name]: value
-                      // ID remains unchanged if it exists
+                      [name]: value,
                     };
                     controllerField.onChange(newValue);
                   }}
@@ -404,7 +467,9 @@ export default function CustomForm({
                   fetchOptionsMap={fetchOptionsMap}
                 />
                 {errors[field.name] && (
-                  <p className='pt-1 text-xs text-red-500'>{errors[field.name].message}</p>
+                  <p className='pt-1 text-xs text-red-500'>
+                    {errors[field.name].message}
+                  </p>
                 )}
               </div>
             )}
@@ -459,8 +524,9 @@ export default function CustomForm({
             onClick={() =>
               isEditing ? handleSubmit(submitHandler)() : setIsEditing(true)
             }
-            className={`border border-gray-400 cursor-pointer bg-deepViolet text-white shadow-sm rounded-3xl hover:scale-105 transition-all duration-300 ${isLoading || isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
-              }`}
+            className={`border border-gray-400 cursor-pointer bg-deepViolet text-white shadow-sm rounded-3xl hover:scale-105 transition-all duration-300 ${
+              isLoading || isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
+            }`}
             disabled={isLoading || isSubmitting}
           >
             <div className='flex gap-2 items-center p-3'>
@@ -479,8 +545,8 @@ export default function CustomForm({
                         ? 'Create'
                         : 'Edit'
                       : isEditing
-                        ? 'Save'
-                        : 'Edit'}
+                      ? 'Save'
+                      : 'Edit'}
                   </p>
                   {isEditing ? (
                     <Save className='h-4 w-4' />
@@ -506,12 +572,15 @@ export default function CustomForm({
             {regularFields.map((field, index) => (
               <div
                 key={index}
-                className={`flex flex-col ${['text-area', 'dynamic-input', 'dynamic-input-group'].includes(
-                  field.type
-                )
-                  ? 'md:col-span-2'
-                  : ''
-                  }`}
+                className={`flex flex-col ${
+                  [
+                    'text-area',
+                    'dynamic-input',
+                    'dynamic-input-group',
+                  ].includes(field.type)
+                    ? 'md:col-span-2'
+                    : ''
+                }`}
               >
                 {renderField(field)}
               </div>

@@ -42,8 +42,15 @@ export const employeeFormConfig = [
     name: 'employee_group_ids',
     type: 'multi-select',
     options: [],
-    validation: { required: true },
     fetchOptions: 'getEmployeeGroup',
+    debounceDelay: 500,
+  },
+  {
+    label: 'Parties',
+    name: 'party_ids',
+    type: 'multi-select',
+    options: [],
+    fetchOptions: 'getPartyNames',
     debounceDelay: 500,
   },
   {
