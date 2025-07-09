@@ -8,6 +8,10 @@ import logo from '../../../../public/logo.svg';
 import { initiateLogin, verifyAuth, resetPassword } from '@/services/auth-api';
 import Image from 'next/image';
 import { Eye, EyeOffIcon } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
   const [step, setStep] = useState('email'); // 'email' | 'auth'
@@ -106,154 +110,158 @@ export default function LoginPage() {
 
   return (
     <div className='h-screen w-screen flex items-center justify-center bg-lightPurple'>
-      <div className='bg-white p-8 rounded-xl shadow-xl w-full max-w-md'>
-        <div className='py-5 flex justify-center'>
+      <Card className='w-full max-w-md'>
+        <CardHeader className='text-center py-5'>
           <Image
             src={logo}
             alt='Logo'
             width={200}
             height={40}
-            className='transition-all duration-300'
+            className='mx-auto transition-all duration-300'
           />
-        </div>
+        </CardHeader>
 
-        {step === 'email' && (
-          <form onSubmit={handleEmailSubmit} className='space-y-5'>
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>
-                Email Address
-              </label>
-              <input
-                type='email'
-                id='email'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className='w-full border border-gray-300 rounded-xl px-4 py-3 text-sm'
-                placeholder='Email'
-              />
-            </div>
-            <button
-              disabled={loading}
-              className='w-full py-3 rounded-xl font-semibold bg-deepViolet hover:scale-105 transition-all text-white'
+        <CardContent>
+          {step === 'email' && (
+            <form onSubmit={handleEmailSubmit} className='space-y-5'>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type='email'
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder='Email'
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={loading}
+                className='w-full'
+              >
+                {loading ? 'Checking...' : 'Next'}
+              </Button>
+            </form>
+          )}
+
+          {step === 'auth' && (
+            <form
+              onSubmit={
+                isVerified ? handlePasswordSubmit : handleSetPasswordSubmit
+              }
+              className='space-y-5'
             >
-              {loading ? 'Checking...' : 'Next'}
-            </button>
-          </form>
-        )}
+              <div className="space-y-2">
+                <Label htmlFor="email-display">Email</Label>
+                <Input
+                  id="email-display"
+                  type='email'
+                  value={email}
+                  disabled
+                  className='bg-muted cursor-not-allowed'
+                />
+              </div>
 
-        {step === 'auth' && (
-          <form
-            onSubmit={
-              isVerified ? handlePasswordSubmit : handleSetPasswordSubmit
-            }
-            className='space-y-5'
-          >
-            <div>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>
-                Email
-              </label>
-              <input
-                type='email'
-                value={email}
-                disabled
-                className='w-full border border-gray-300 bg-gray-100 rounded-xl px-4 py-3 text-sm cursor-not-allowed'
-              />
-            </div>
-
-            {isVerified ? (
-              <>
-                <div className='relative'>
-                  <label className='block text-sm font-medium text-gray-700 mb-1'>
-                    Password
-                  </label>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder='Password'
-                    required
-                    className='w-full border border-gray-300 rounded-xl px-4 py-3 text-sm pr-10'
-                  />
-                  <button
-                    type='button'
-                    className='absolute right-3 top-9.5 text-gray-500 hover:text-gray-700'
-                    onClick={() => setShowPassword(!showPassword)}
+              {isVerified ? (
+                <>
+                  <div className='relative space-y-2'>
+                    <Label htmlFor="password">Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder='Password'
+                        required
+                        className='pr-10'
+                      />
+                      <Button
+                        type='button'
+                        variant="ghost"
+                        size="icon"
+                        className='absolute right-0 top-0 h-full px-3 hover:bg-transparent'
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOffIcon size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  <Button
+                    type='submit'
+                    disabled={loading}
+                    className='w-full'
                   >
-                    {showPassword ? (
-                      <EyeOffIcon size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
-                  </button>
-                </div>
-                <button
-                  type='submit'
-                  disabled={loading}
-                  className='w-full py-3 rounded-xl font-semibold bg-indigo-500 text-white'
-                >
-                  {loading ? 'Logging in...' : 'Login'}
-                </button>
-                <button
-                  type='button'
-                  onClick={handleResetPassword}
-                  disabled={resetting}
-                  className='text-sm text-blue-600 underline mt-2'
-                >
-                  {resetting ? 'Sending...' : 'Forgot Password?'}
-                </button>
-              </>
-            ) : (
-              <>
-                <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-1'>
-                    Temp Password
-                  </label>
-                  <input
-                    type='text'
-                    value={tempPassword}
-                    onChange={(e) => setTempPassword(e.target.value)}
-                    placeholder='Temporary password'
-                    required
-                    className='w-full border border-gray-300 rounded-xl px-4 py-3 text-sm'
-                  />
-                </div>
-                <div className='relative'>
-                  <label className='block text-sm font-medium text-gray-700 mb-1'>
-                    New Password
-                  </label>
-                  <input
-                    type={showNewPassword ? 'text' : 'password'}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder='New password'
-                    required
-                    className='w-full border border-gray-300 rounded-xl px-4 py-3 text-sm pr-10'
-                  />
-                  <button
+                    {loading ? 'Logging in...' : 'Login'}
+                  </Button>
+                  <Button
                     type='button'
-                    className='absolute right-3 top-9.5 text-gray-500 hover:text-gray-700'
-                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    variant="link"
+                    onClick={handleResetPassword}
+                    disabled={resetting}
+                    className='w-full'
                   >
-                    {showNewPassword ? (
-                      <EyeOffIcon size={18} />
-                    ) : (
-                      <Eye size={18} />
-                    )}
-                  </button>
-                </div>
-                <button
-                  type='submit'
-                  disabled={loading}
-                  className='w-full py-3 rounded-xl font-semibold bg-indigo-500 text-white'
-                >
-                  {loading ? 'Submitting...' : 'Set Password & Login'}
-                </button>
-              </>
-            )}
-          </form>
-        )}
-      </div>
+                    {resetting ? 'Sending...' : 'Forgot Password?'}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="temp-password">Temp Password</Label>
+                    <Input
+                      id="temp-password"
+                      type='text'
+                      value={tempPassword}
+                      onChange={(e) => setTempPassword(e.target.value)}
+                      placeholder='Temporary password'
+                      required
+                    />
+                  </div>
+                  <div className='relative space-y-2'>
+                    <Label htmlFor="new-password">New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="new-password"
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder='New password'
+                        required
+                        className='pr-10'
+                      />
+                      <Button
+                        type='button'
+                        variant="ghost"
+                        size="icon"
+                        className='absolute right-0 top-0 h-full px-3 hover:bg-transparent'
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                      >
+                        {showNewPassword ? (
+                          <EyeOffIcon size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  <Button
+                    type='submit'
+                    disabled={loading}
+                    className='w-full'
+                  >
+                    {loading ? 'Submitting...' : 'Set Password & Login'}
+                  </Button>
+                </>
+              )}
+            </form>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

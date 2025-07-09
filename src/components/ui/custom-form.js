@@ -3,10 +3,17 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SimpleSelect from './simple-dropdown';
 import SearchableSelect from './searchable-dropdown';
 import MultiSelect from './mulit-select-dropdown';
-import ToggleSwitch from './toggle-switch';
 import DynamicInput from './dynamic-input';
 import { buildSchema } from '@/lib/form-build-schema';
 import Loader from './loader';
@@ -62,6 +69,7 @@ const transformFormData = (values, formDetails, originalData = {}) => {
     return acc;
   }, {});
 };
+
 const getDefaultValues = (formDetails, data) => {
   return formDetails.reduce((acc, field) => {
     if (data && data[field.name] !== undefined) {
@@ -139,20 +147,14 @@ export default function CustomForm({
     [filteredFormDetails, data]
   );
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm({
+  const form = useForm({
     defaultValues,
     resolver: zodResolver(schema),
   });
 
   const isCreateMode = !data?.id;
   const [isEditing, setIsEditing] = useState(isCreateMode);
-  const formValues = useWatch({ control });
+  const formValues = useWatch({ control: form.control });
 
   useEffect(() => {
     const hasData = Object.keys(data || {}).length > 0;
@@ -164,14 +166,13 @@ export default function CustomForm({
             ? formattedData.status
             : formattedData.status === 'active';
       }
-      reset(getDefaultValues(filteredFormDetails, formattedData));
+      form.reset(getDefaultValues(filteredFormDetails, formattedData));
       if (!isCreateMode) setIsEditing(false);
     } else {
-      reset(getDefaultValues(filteredFormDetails, {}));
+      form.reset(getDefaultValues(filteredFormDetails, {}));
       if (isCreateMode) setIsEditing(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.id, filteredFormDetails, reset, isCreateMode]);
+  }, [data?.id, filteredFormDetails, form, isCreateMode]);
 
   const submitHandler = async (values) => {
     const submissionData = isCreateMode
@@ -194,10 +195,10 @@ export default function CustomForm({
         const response = await submitResult;
         if (!isCreateMode && response) {
           const newData = response.data || response;
-          reset(getDefaultValues(filteredFormDetails, newData));
+          form.reset(getDefaultValues(filteredFormDetails, newData));
         }
       } else if (!isCreateMode) {
-        reset(
+        form.reset(
           getDefaultValues(filteredFormDetails, { ...data, ...transformedData })
         );
       }
@@ -218,115 +219,105 @@ export default function CustomForm({
   }, [filteredFormDetails, formValues]);
 
   const renderField = (field) => {
-    const isError = errors[field.name];
     const isRequired = field.validation?.required;
     const isPermanentlyDisabled = field.readonly && !isCreateMode;
 
-    const baseInputClasses = `border rounded-md px-3 py-2 text-sm focus:outline-none ${
-      isError ? 'border-red-500' : 'border-gray-300'
-    } ${
-      !isEditing || isPermanentlyDisabled
-        ? 'bg-gray-100 cursor-not-allowed'
-        : ''
-    }`;
-
     switch (field.type) {
       case 'text':
-      case 'text-area':
       case 'date':
       case 'time':
       case 'color':
       case 'number':
         return (
-          <div className='flex flex-col'>
-            <label className='mb-1 font-medium text-sm text-gray-600'>
-              {field.label}
-              {isRequired && <span className='text-red-500 ml-1'>*</span>}
-            </label>
-            <input
-              type={
-                field.type === 'date'
-                  ? 'date'
-                  : field.type === 'time'
-                  ? 'time'
-                  : field.type === 'color'
-                  ? 'color'
-                  : 'text'
-              }
-              {...register(field.name, { required: isRequired })}
-              disabled={!isEditing || isPermanentlyDisabled}
-              className={`${baseInputClasses} ${
-                field.type === 'text-area' ? 'resize-none' : ''
-              } ${
-                field.type === 'color' ? 'h-10 w-16 p-1 cursor-pointer' : ''
-              }`}
-              rows={field.type === 'text-area' ? 4 : undefined}
-              aria-required={isRequired}
-            />
-            {isError && (
-              <p className='pt-1 text-xs text-red-500'>{isError.message}</p>
+          <FormField
+            control={form.control}
+            name={field.name}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>
+                  {field.label}
+                  {isRequired && <span className='text-red-500 ml-1'>*</span>}
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type={
+                      field.type === 'date'
+                        ? 'date'
+                        : field.type === 'time'
+                        ? 'time'
+                        : field.type === 'color'
+                        ? 'color'
+                        : field.type === 'number'
+                        ? 'number'
+                        : 'text'
+                    }
+                    {...formField}
+                    disabled={!isEditing || isPermanentlyDisabled}
+                    step={field.type === 'number' ? field.step || 1 : undefined}
+                    min={field.type === 'number' ? field.validation?.min : undefined}
+                    max={field.type === 'number' ? field.validation?.max : undefined}
+                    className={field.type === 'color' ? 'h-10 w-16 p-1 cursor-pointer' : ''}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
+          />
         );
 
-      case 'number':
+      case 'text-area':
         return (
-          <div className='flex flex-col'>
-            <label className='mb-1 font-medium text-sm text-gray-600'>
-              {field.label}
-              {isRequired && <span className='text-red-500 ml-1'>*</span>}
-            </label>
-            <input
-              type='number'
-              {...register(field.name, {
-                required: isRequired,
-                valueAsNumber: true, // This ensures the value is parsed as number
-                min: field.validation?.min,
-                max: field.validation?.max,
-              })}
-              disabled={!isEditing || isPermanentlyDisabled}
-              className={baseInputClasses}
-              step={field.step || 1}
-              min={field.validation?.min}
-              max={field.validation?.max}
-              aria-required={isRequired}
-            />
-            {isError && (
-              <p className='pt-1 text-xs text-red-500'>{isError.message}</p>
+          <FormField
+            control={form.control}
+            name={field.name}
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>
+                  {field.label}
+                  {isRequired && <span className='text-red-500 ml-1'>*</span>}
+                </FormLabel>
+                <FormControl>
+                  <Textarea
+                    {...formField}
+                    disabled={!isEditing || isPermanentlyDisabled}
+                    rows={4}
+                    className="resize-none"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
+          />
         );
 
       case 'simple-select':
         return (
-          <Controller
-            control={control}
+          <FormField
+            control={form.control}
             name={field.name}
-            rules={{ required: isRequired }}
-            render={({ field: controllerField }) => (
-              <div className='flex flex-col'>
-                <label className='mb-1 font-medium text-sm text-gray-600'>
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>
                   {field.label}
                   {isRequired && <span className='text-red-500 ml-1'>*</span>}
-                </label>
-                <SimpleSelect
-                  value={controllerField.value}
-                  options={field.options}
-                  onChange={controllerField.onChange}
-                  error={isError}
-                  isDisabled={!isEditing || isPermanentlyDisabled}
-                  isRequired={isRequired}
-                  fetchOptions={
-                    field.fetchOptions && fetchOptionsMap[field.fetchOptions]
-                      ? () => fetchOptionsMap[field.fetchOptions]()
-                      : undefined
-                  }
-                  useApiFiltering={!!field.fetchOptions}
-                />
-                {isError && (
-                  <p className='pt-1 text-xs text-red-500'>{isError.message}</p>
-                )}
-              </div>
+                </FormLabel>
+                <FormControl>
+                  <SimpleSelect
+                    value={formField.value}
+                    options={field.options}
+                    onChange={formField.onChange}
+                    isDisabled={!isEditing || isPermanentlyDisabled}
+                    isRequired={isRequired}
+                    fetchOptions={
+                      field.fetchOptions && fetchOptionsMap[field.fetchOptions]
+                        ? () => fetchOptionsMap[field.fetchOptions]()
+                        : undefined
+                    }
+                    useApiFiltering={!!field.fetchOptions}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
         );
@@ -336,166 +327,161 @@ export default function CustomForm({
         const SelectComponent =
           field.type === 'searchable-select' ? SearchableSelect : MultiSelect;
         return (
-          <Controller
-            control={control}
+          <FormField
+            control={form.control}
             name={field.name}
-            rules={{ required: isRequired }}
-            render={({ field: controllerField }) => (
-              <div className='flex flex-col'>
-                <label className='mb-1 font-medium text-sm text-gray-600'>
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>
                   {field.label}
                   {isRequired && <span className='text-red-500 ml-1'>*</span>}
-                </label>
-                <SelectComponent
-                  value={controllerField.value}
-                  options={field.options}
-                  onChange={controllerField.onChange}
-                  error={isError}
-                  isDisabled={!isEditing || isPermanentlyDisabled}
-                  isRequired={isRequired}
-                  fetchOptions={
-                    field.fetchOptions && fetchOptionsMap[field.fetchOptions]
-                      ? fetchOptionsMap[field.fetchOptions]
-                      : undefined
-                  }
-                  useApiFiltering={!!field.fetchOptions}
-                />
-                {isError && (
-                  <p className='pt-1 text-xs text-red-500'>{isError.message}</p>
-                )}
-              </div>
+                </FormLabel>
+                <FormControl>
+                  <SelectComponent
+                    value={formField.value}
+                    options={field.options}
+                    onChange={formField.onChange}
+                    isDisabled={!isEditing || isPermanentlyDisabled}
+                    isRequired={isRequired}
+                    fetchOptions={
+                      field.fetchOptions && fetchOptionsMap[field.fetchOptions]
+                        ? fetchOptionsMap[field.fetchOptions]
+                        : undefined
+                    }
+                    useApiFiltering={!!field.fetchOptions}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
         );
 
       case 'dynamic-input':
         return (
-          <Controller
-            control={control}
+          <FormField
+            control={form.control}
             name={field.name}
-            rules={{ required: isRequired }}
-            render={({ field: controllerField }) => (
-              <div className='flex flex-col'>
-                <label className='mb-1 font-medium text-sm text-gray-600'>
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>
                   {field.label}
                   {isRequired && <span className='text-red-500 ml-1'>*</span>}
-                </label>
-                <DynamicInput
-                  fields={controllerField.value || []}
-                  onAddField={() => {
-                    const newValue = [
-                      ...(controllerField.value || []),
-                      { value: '' },
-                    ];
-                    controllerField.onChange(newValue);
-                  }}
-                  onRemoveField={(index) => {
-                    const newValue = [...(controllerField.value || [])];
-                    newValue.splice(index, 1);
-                    controllerField.onChange(
-                      newValue.length ? newValue : [{ value: '' }]
-                    );
-                  }}
-                  onChange={(index, value) => {
-                    const newValue = [...(controllerField.value || [])];
-                    newValue[index] = { value };
-                    controllerField.onChange(newValue);
-                  }}
-                  isEditing={isEditing}
-                  error={errors[field.name]}
-                  isRequired={isRequired}
-                />
-                {isError && (
-                  <p className='pt-1 text-xs text-red-500'>{isError.message}</p>
-                )}
-              </div>
+                </FormLabel>
+                <FormControl>
+                  <DynamicInput
+                    fields={formField.value || []}
+                    onAddField={() => {
+                      const newValue = [
+                        ...(formField.value || []),
+                        { value: '' },
+                      ];
+                      formField.onChange(newValue);
+                    }}
+                    onRemoveField={(index) => {
+                      const newValue = [...(formField.value || [])];
+                      newValue.splice(index, 1);
+                      formField.onChange(
+                        newValue.length ? newValue : [{ value: '' }]
+                      );
+                    }}
+                    onChange={(index, value) => {
+                      const newValue = [...(formField.value || [])];
+                      newValue[index] = { value };
+                      formField.onChange(newValue);
+                    }}
+                    isEditing={isEditing}
+                    isRequired={isRequired}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
         );
 
       case 'dynamic-input-group':
         return (
-          <Controller
-            control={control}
+          <FormField
+            control={form.control}
             name={field.name}
-            render={({ field: controllerField }) => (
-              <div className='flex flex-col'>
-                <label className='mb-1 font-medium text-sm text-gray-600'>
+            render={({ field: formField }) => (
+              <FormItem>
+                <FormLabel>
                   {field.label}
                   {field.validation?.required && (
                     <span className='text-red-500 ml-1'>*</span>
                   )}
-                </label>
-                <DynamicInputGroup
-                  name={field.name}
-                  control={control}
-                  fields={controllerField.value || []}
-                  template={field.fields || []}
-                  onAddField={() => {
-                    const newItem = field.fields.reduce(
-                      (obj, f) => ({
-                        ...obj,
-                        [f.name]:
-                          f.type === 'toggle'
-                            ? f.defaultValue !== undefined
-                              ? f.defaultValue
-                              : false
-                            : '',
-                      }),
-                      {}
-                    );
-                    controllerField.onChange([
-                      ...(controllerField.value || []),
-                      newItem,
-                    ]);
-                  }}
-                  onRemoveField={(index) => {
-                    const newValue = [...(controllerField.value || [])];
-                    newValue.splice(index, 1);
-                    controllerField.onChange(newValue);
-                  }}
-                  onChange={(index, name, value) => {
-                    const newValue = [...(controllerField.value || [])];
-                    newValue[index] = {
-                      ...newValue[index],
-                      [name]: value,
-                    };
-                    controllerField.onChange(newValue);
-                  }}
-                  isEditing={isEditing}
-                  error={errors[field.name]}
-                  fetchOptionsMap={fetchOptionsMap}
-                />
-                {errors[field.name] && (
-                  <p className='pt-1 text-xs text-red-500'>
-                    {errors[field.name].message}
-                  </p>
-                )}
-              </div>
+                </FormLabel>
+                <FormControl>
+                  <DynamicInputGroup
+                    name={field.name}
+                    control={form.control}
+                    fields={formField.value || []}
+                    template={field.fields || []}
+                    onAddField={() => {
+                      const newItem = field.fields.reduce(
+                        (obj, f) => ({
+                          ...obj,
+                          [f.name]:
+                            f.type === 'toggle'
+                              ? f.defaultValue !== undefined
+                                ? f.defaultValue
+                                : false
+                              : '',
+                        }),
+                        {}
+                      );
+                      formField.onChange([
+                        ...(formField.value || []),
+                        newItem,
+                      ]);
+                    }}
+                    onRemoveField={(index) => {
+                      const newValue = [...(formField.value || [])];
+                      newValue.splice(index, 1);
+                      formField.onChange(newValue);
+                    }}
+                    onChange={(index, name, value) => {
+                      const newValue = [...(formField.value || [])];
+                      newValue[index] = {
+                        ...newValue[index],
+                        [name]: value,
+                      };
+                      formField.onChange(newValue);
+                    }}
+                    isEditing={isEditing}
+                    fetchOptionsMap={fetchOptionsMap}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
         );
 
       case 'toggle':
         return (
-          <Controller
-            control={control}
+          <FormField
+            control={form.control}
             name={field.name}
-            render={({ field: controllerField }) => (
-              <div className='flex flex-col'>
-                <label className='mb-1 font-medium text-sm text-gray-600'>
-                  {field.label}
-                  {isRequired && <span className='text-red-500 ml-1'>*</span>}
-                </label>
-                <ToggleSwitch
-                  value={controllerField.value ?? true}
-                  onChange={controllerField.onChange}
-                  isDisabled={!isEditing || (field.readonly && !isCreateMode)}
-                />
-                {isError && (
-                  <p className='pt-1 text-xs text-red-500'>{isError.message}</p>
-                )}
-              </div>
+            render={({ field: formField }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">
+                    {field.label}
+                    {isRequired && <span className='text-red-500 ml-1'>*</span>}
+                  </FormLabel>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={formField.value ?? true}
+                    onCheckedChange={formField.onChange}
+                    disabled={!isEditing || (field.readonly && !isCreateMode)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
         );
@@ -506,103 +492,96 @@ export default function CustomForm({
   };
 
   return (
-    <div className='flex flex-col gap-5 bg-white rounded-xl shadow p-4 relative'>
+    <Card className="relative">
       {isLoading && (
         <div className='absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-10 rounded-xl'>
           <Loader />
         </div>
       )}
 
-      <div className='flex justify-between items-center'>
-        <h2 className='text-md font-semibold'>
-          {isCreateMode ? `Create ${title}` : `Edit ${title}`}
-        </h2>
-        <div className='flex gap-2'>
-          <button
-            aria-labelledby='form button'
+      <CardHeader>
+        <div className='flex justify-between items-center'>
+          <CardTitle className='text-lg'>
+            {isCreateMode ? `Create ${title}` : `Edit ${title}`}
+          </CardTitle>
+          <Button
             type='button'
             onClick={() =>
-              isEditing ? handleSubmit(submitHandler)() : setIsEditing(true)
+              isEditing ? form.handleSubmit(submitHandler)() : setIsEditing(true)
             }
-            className={`border border-gray-400 cursor-pointer bg-deepViolet text-white shadow-sm rounded-3xl hover:scale-105 transition-all duration-300 ${
-              isLoading || isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
-            }`}
-            disabled={isLoading || isSubmitting}
+            className="gap-2"
+            disabled={isLoading || form.formState.isSubmitting}
           >
-            <div className='flex gap-2 items-center p-3'>
-              {isLoading || isSubmitting ? (
-                <>
-                  <Loader2 className='h-4 w-4 animate-spin' />
-                  <p className='text-xs'>
-                    {isEditing ? 'Saving...' : 'Loading...'}
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className='text-xs'>
-                    {isCreateMode
-                      ? isEditing
-                        ? 'Create'
-                        : 'Edit'
-                      : isEditing
-                      ? 'Save'
-                      : 'Edit'}
-                  </p>
-                  {isEditing ? (
-                    <Save className='h-4 w-4' />
-                  ) : (
-                    <Edit className='h-4 w-4' />
-                  )}
-                </>
-              )}
-            </div>
-          </button>
+            {isLoading || form.formState.isSubmitting ? (
+              <>
+                <Loader2 className='h-4 w-4 animate-spin' />
+                {isEditing ? 'Saving...' : 'Loading...'}
+              </>
+            ) : (
+              <>
+                {isCreateMode
+                  ? isEditing
+                    ? 'Create'
+                    : 'Edit'
+                  : isEditing
+                  ? 'Save'
+                  : 'Edit'}
+                {isEditing ? (
+                  <Save className='h-4 w-4' />
+                ) : (
+                  <Edit className='h-4 w-4' />
+                )}
+              </>
+            )}
+          </Button>
         </div>
-      </div>
+      </CardHeader>
 
-      <div
-        className={
-          toggleFields.length > 0
-            ? 'grid grid-cols-2 lg:grid-cols-3 gap-6'
-            : 'grid grid-cols-1'
-        }
-      >
-        <div className={toggleFields.length > 0 ? 'lg:col-span-2' : 'w-full'}>
-          <form className='text-sm grid grid-cols-1 md:grid-cols-2 gap-4'>
-            {regularFields.map((field, index) => (
-              <div
-                key={index}
-                className={`flex flex-col ${
-                  [
-                    'text-area',
-                    'dynamic-input',
-                    'dynamic-input-group',
-                  ].includes(field.type)
-                    ? 'md:col-span-2'
-                    : ''
-                }`}
-              >
-                {renderField(field)}
-              </div>
-            ))}
-          </form>
-        </div>
-
-        {toggleFields.length > 0 && (
-          <div className='lg:col-span-1'>
-            <div className='bg-gray-50 p-4 rounded-lg'>
-              <h3 className='text-md font-semibold mb-4'>Settings</h3>
-              <div className='grid grid-cols-1 gap-4'>
-                {toggleFields.map((field, index) => (
-                  <div key={index} className='flex flex-col'>
+      <CardContent>
+        <div className={toggleFields.length > 0 ? 'grid grid-cols-1 lg:grid-cols-3 gap-6' : 'grid grid-cols-1'}>
+          <div className={toggleFields.length > 0 ? 'lg:col-span-2' : 'w-full'}>
+            <Form {...form}>
+              <form className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                {regularFields.map((field, index) => (
+                  <div
+                    key={index}
+                    className={`${
+                      [
+                        'text-area',
+                        'dynamic-input',
+                        'dynamic-input-group',
+                      ].includes(field.type)
+                        ? 'md:col-span-2'
+                        : ''
+                    }`}
+                  >
                     {renderField(field)}
                   </div>
                 ))}
-              </div>
-            </div>
+              </form>
+            </Form>
           </div>
-        )}
-      </div>
-    </div>
+
+          {toggleFields.length > 0 && (
+            <div className='lg:col-span-1'>
+              <Card>
+                <CardHeader>
+                  <CardTitle className='text-base'>Settings</CardTitle>
+                </CardHeader>
+                <CardContent className='space-y-4'>
+                  <Form {...form}>
+                    {toggleFields.map((field, index) => (
+                      <div key={index}>
+                        {renderField(field)}
+                      </div>
+                    ))}
+                  </Form>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

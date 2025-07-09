@@ -3,6 +3,10 @@
 import { useState, useRef } from 'react';
 import { useClickAway } from 'react-use';
 import { Controller, useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import SimpleSelect from './simple-dropdown';
 import SearchableSelect from './searchable-dropdown';
 import MultiSelect from './mulit-select-dropdown';
@@ -83,10 +87,6 @@ export default function CustomFilter({
               fieldValue !== undefined &&
               fieldValue !== '';
 
-          const commonPillClasses = `rounded-md text-xs border border-gray-300 whitespace-nowrap flex items-center gap-1 px-3 py-1 ${
-            isFilled ? 'text-deepViolet font-medium' : 'text-gray-600'
-          }`;
-
           const renderClearIcon = () =>
             isFilled ? (
               <span
@@ -94,7 +94,7 @@ export default function CustomFilter({
                   e.stopPropagation();
                   handleClearOne(field.name);
                 }}
-                className='cursor-pointer text-gray-500 ml-1 hover:text-red-500'
+                className='cursor-pointer text-muted-foreground ml-1 hover:text-red-500'
               >
                 ✕
               </span>
@@ -108,13 +108,13 @@ export default function CustomFilter({
                   control={control}
                   defaultValue=''
                   render={({ field: controllerField }) => (
-                    <input
+                    <Input
                       type='text'
                       autoFocus
                       value={controllerField.value || ''}
                       onChange={controllerField.onChange}
                       onBlur={() => setActiveFilter(null)}
-                      className='bg-white text-xs focus:outline-none'
+                      className='h-6 text-xs border-none p-0 focus-visible:ring-0'
                     />
                   )}
                 />
@@ -128,13 +128,13 @@ export default function CustomFilter({
                   control={control}
                   defaultValue=''
                   render={({ field: controllerField }) => (
-                    <input
+                    <Input
                       type='date'
                       autoFocus
                       value={controllerField.value || ''}
                       onChange={controllerField.onChange}
                       onBlur={() => setActiveFilter(null)}
-                      className='bg-white px-2 py-0.5 rounded text-xs border border-gray-300 focus:outline-none'
+                      className='h-6 text-xs'
                     />
                   )}
                 />
@@ -148,18 +148,22 @@ export default function CustomFilter({
             <div key={field.name} className='relative'>
               {/* Inline inputs for text/date */}
               {(field.type === 'text' || field.type === 'date') && isActive ? (
-                <div className={commonPillClasses}>{renderInlineInput()}</div>
+                <Badge 
+                  variant="outline" 
+                  className={`cursor-pointer gap-1 ${isFilled ? 'border-primary text-primary' : ''}`}
+                >
+                  {renderInlineInput()}
+                </Badge>
               ) : (
-                <button
+                <Badge
+                  variant={isActive ? "default" : "outline"}
+                  className={`cursor-pointer gap-1 ${isFilled ? 'border-primary text-primary' : ''}`}
                   onClick={() => handleToggle(field.name)}
-                  className={`${commonPillClasses} ${
-                    isActive ? 'bg-gray-200' : 'bg-white'
-                  }`}
                 >
                   {field.label}
                   {isFilled && <span className='text-[10px]'>⬤</span>}
                   {renderClearIcon()}
-                </button>
+                </Badge>
               )}
 
               {/* Popover for dropdown/multi-select */}
@@ -167,68 +171,67 @@ export default function CustomFilter({
                 ['simple-select', 'searchable-select', 'multi-select'].includes(
                   field.type
                 ) && (
-                  <div
+                  <Card
                     ref={popoverRef}
-                    className='absolute left-0 mt-2 bg-white shadow-lg rounded-lg border border-gray-200 p-3 z-50 min-w-[220px] max-w-[320px]'
+                    className='absolute left-0 mt-2 z-50 min-w-[220px] max-w-[320px]'
                   >
-                    {field.type === 'simple-select' && (
-                      <Controller
-                        name={field.name}
-                        control={control}
-                        defaultValue={null}
-                        render={({ field: controllerField }) => (
-                          <SimpleSelect
-                            value={controllerField.value}
-                            options={field.options}
-                            onChange={controllerField.onChange}
-                            size='sm'
-                          />
-                        )}
-                      />
-                    )}
+                    <CardContent className="p-3">
+                      {field.type === 'simple-select' && (
+                        <Controller
+                          name={field.name}
+                          control={control}
+                          defaultValue={null}
+                          render={({ field: controllerField }) => (
+                            <SimpleSelect
+                              value={controllerField.value}
+                              options={field.options}
+                              onChange={controllerField.onChange}
+                            />
+                          )}
+                        />
+                      )}
 
-                    {field.type === 'searchable-select' && (
-                      <Controller
-                        name={field.name}
-                        control={control}
-                        defaultValue={null}
-                        render={({ field: controllerField }) => (
-                          <SearchableSelect
-                            value={controllerField.value}
-                            options={field.options}
-                            onChange={controllerField.onChange}
-                            fetchOptions={
-                              field.fetchOptions &&
-                              fetchOptionsMap[field.fetchOptions]
-                            }
-                            useApiFiltering={!!field.fetchOptions}
-                            size='sm'
-                          />
-                        )}
-                      />
-                    )}
+                      {field.type === 'searchable-select' && (
+                        <Controller
+                          name={field.name}
+                          control={control}
+                          defaultValue={null}
+                          render={({ field: controllerField }) => (
+                            <SearchableSelect
+                              value={controllerField.value}
+                              options={field.options}
+                              onChange={controllerField.onChange}
+                              fetchOptions={
+                                field.fetchOptions &&
+                                fetchOptionsMap[field.fetchOptions]
+                              }
+                              useApiFiltering={!!field.fetchOptions}
+                            />
+                          )}
+                        />
+                      )}
 
-                    {field.type === 'multi-select' && (
-                      <Controller
-                        name={field.name}
-                        control={control}
-                        defaultValue={[]}
-                        render={({ field: controllerField }) => (
-                          <MultiSelect
-                            value={controllerField.value || []}
-                            options={field.options}
-                            onChange={controllerField.onChange}
-                            fetchOptions={
-                              field.fetchOptions &&
-                              fetchOptionsMap[field.fetchOptions]
-                            }
-                            useApiFiltering={!!field.fetchOptions}
-                            size='sm'
-                          />
-                        )}
-                      />
-                    )}
-                  </div>
+                      {field.type === 'multi-select' && (
+                        <Controller
+                          name={field.name}
+                          control={control}
+                          defaultValue={[]}
+                          render={({ field: controllerField }) => (
+                            <MultiSelect
+                              value={controllerField.value || []}
+                              options={field.options}
+                              onChange={controllerField.onChange}
+                              fetchOptions={
+                                field.fetchOptions &&
+                                fetchOptionsMap[field.fetchOptions]
+                              }
+                              useApiFiltering={!!field.fetchOptions}
+                            />
+                          )}
+                        />
+                      )}
+                    </CardContent>
+                  </Card>
                 )}
             </div>
           );
@@ -237,18 +240,19 @@ export default function CustomFilter({
 
       {/* Action buttons */}
       <div className='flex justify-end gap-2 mt-3'>
-        <button
+        <Button
           onClick={handleSearch}
-          className='text-xs px-2.5 py-1.5 border border-deepViolet bg-deepViolet text-white rounded hover:opacity-90 transition'
+          size="sm"
         >
           Search
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleClearAll}
-          className='text-xs px-2.5 py-1.5 border border-gray-400 rounded hover:bg-gray-100 transition'
+          variant="outline"
+          size="sm"
         >
           Clear all
-        </button>
+        </Button>
       </div>
     </div>
   );

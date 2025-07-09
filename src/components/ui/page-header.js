@@ -1,6 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function PageHeader({ title, showBackButton = false }) {
   const router = useRouter();
@@ -8,14 +9,16 @@ export default function PageHeader({ title, showBackButton = false }) {
   return (
     <div className='py-2 flex items-center gap-4'>
       {showBackButton && (
-        <button
+        <Button
+          variant="outline"
+          size="icon"
           onClick={() => router.back()}
-          className='p-1 cursor-pointer rounded-full bg-white border border-deepViolet text-deepViolet hover:bg-deepViolet hover:text-white transition-all'
+          className='rounded-full'
         >
           <ArrowLeft size={20} />
-        </button>
+        </Button>
       )}
-      <title className='text-black font-bold text-xl'>{title}</title>
+      <h1 className='text-foreground font-bold text-xl'>{title}</h1>
     </div>
   );
 }

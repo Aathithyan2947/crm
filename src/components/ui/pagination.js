@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { Button } from '@/components/ui/button';
 
 export default function Pagination({ currentPage, totalPages, onPageChange }) {
   const pageWindow = 5;
@@ -18,38 +19,36 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
   }, [currentPage, totalPages]);
 
   return (
-    <div className='flex justify-center items-center gap-1 mt-3 text-sm'>
-      <button
-        aria-labelledby='prev button'
-        className='px-2.5 cursor-pointer py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed'
+    <div className='flex justify-center items-center gap-1 mt-3'>
+      <Button
+        variant="outline"
+        size="sm"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
       >
         Prev
-      </button>
+      </Button>
 
       {pages.map((page) => (
-        <button
-          aria-labelledby='page number button'
+        <Button
           key={`page-${page}`}
-          className={`w-8 h-8 flex cursor-pointer items-center justify-center rounded-md border border-gray-300 transition-all duration-200 text-sm ${page === currentPage
-            ? 'bg-deepViolet text-white border-deepViolet scale-105 shadow'
-            : 'text-gray-700 hover:bg-gray-100'
-            }`}
+          variant={page === currentPage ? "default" : "outline"}
+          size="sm"
+          className="w-8 h-8 p-0"
           onClick={() => onPageChange(page)}
         >
           {page}
-        </button>
+        </Button>
       ))}
 
-      <button
-        aria-labelledby='next button'
-        className='px-2.5 cursor-pointer py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed'
+      <Button
+        variant="outline"
+        size="sm"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
       >
         Next
-      </button>
+      </Button>
     </div>
   );
 }

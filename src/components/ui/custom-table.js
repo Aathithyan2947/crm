@@ -1,7 +1,10 @@
 'use client';
 
 import { FolderX, Filter, Eye } from 'lucide-react';
-import Button from './button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import Button as CustomButton from './button';
 import Pagination from './pagination';
 import Link from 'next/link';
 import TableSkeleton from './table-skeleton-loading';
@@ -9,12 +12,12 @@ import CustomFilter from './custom-filter';
 import { useState } from 'react';
 
 const statusStyles = {
-  active: 'bg-green-100 text-green-800',
-  completed: 'bg-blue-100 text-blue-800',
-  pending: 'bg-yellow-100 text-yellow-800',
-  'over due': 'bg-red-100 text-red-800',
-  overdue: 'bg-red-100 text-red-800', // optional alias
-  default: 'bg-gray-100 text-gray-800',
+  active: 'bg-green-100 text-green-800 hover:bg-green-100',
+  completed: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+  pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
+  'over due': 'bg-red-100 text-red-800 hover:bg-red-100',
+  overdue: 'bg-red-100 text-red-800 hover:bg-red-100',
+  default: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
 };
 
 export default function CustomTable({
@@ -39,15 +42,13 @@ export default function CustomTable({
     data?.length > 0 ? Object.keys(data[0]).filter((key) => key !== 'id') : [];
 
   const StatusChip = ({ status }) => {
-    const normalizedStatus = status?.toLowerCase(); // safety and normalization
+    const normalizedStatus = status?.toLowerCase();
     const chipStyle = statusStyles[normalizedStatus] || statusStyles.default;
 
     return (
-      <span
-        className={`inline-flex items-center justify-center min-w-[80px] h-7 px-3 py-1.5 rounded-full text-[10px] font-medium text-center uppercase ${chipStyle}`}
-      >
+      <Badge variant="secondary" className={`min-w-[80px] justify-center uppercase ${chipStyle}`}>
         {status}
-      </span>
+      </Badge>
     );
   };
 
@@ -68,12 +69,12 @@ export default function CustomTable({
       <>
         <div className='overflow-x-auto'>
           <table className='w-full text-sm table-auto'>
-            <thead className='bg-lightViolet text-darkBlue font-semibold'>
+            <thead className='bg-muted'>
               <tr>
                 {columns.map((column) => (
                   <th
                     key={column}
-                    className='px-3 py-3 text-left text-xs uppercase tracking-wider'
+                    className='px-3 py-3 text-left text-xs font-medium uppercase tracking-wider'
                   >
                     {column
                       .replace(/_/g, ' ')
@@ -81,19 +82,19 @@ export default function CustomTable({
                   </th>
                 ))}
                 {showActions && (
-                  <th className='px-3 py-3 text-left text-xs uppercase tracking-wider'>
+                  <th className='px-3 py-3 text-left text-xs font-medium uppercase tracking-wider'>
                     Actions
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className='bg-white divide-y divide-gray-200'>
+            <tbody className='divide-y divide-border'>
               {data?.map((item) => (
-                <tr key={item.id}>
+                <tr key={item.id} className="hover:bg-muted/50">
                   {columns.map((column) => (
                     <td
                       key={`${item.id}-${column}`}
-                      className='px-3 py-2 whitespace-normal break-words text-xs text-gray-600'
+                      className='px-3 py-2 whitespace-normal break-words text-xs text-muted-foreground'
                     >
                       {column === 'status' ? (
                         <StatusChip status={item[column]} />
@@ -104,13 +105,15 @@ export default function CustomTable({
                   ))}
                   {showActions && (
                     <td className='px-3 py-2 whitespace-nowrap text-xs font-medium'>
-                      <Link
-                        className='flex items-center gap-1 text-deepViolet hover:text-blue-900 hover:scale-105 transition-all duration-200'
-                        href={`${actionPath}/${item.id}`}
-                      >
-                        <span>Details</span>
-                        <Eye size={15} />
-                      </Link>
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link
+                          href={`${actionPath}/${item.id}`}
+                          className='flex items-center gap-1'
+                        >
+                          <span>Details</span>
+                          <Eye size={15} />
+                        </Link>
+                      </Button>
                     </td>
                   )}
                 </tr>
@@ -120,7 +123,7 @@ export default function CustomTable({
         </div>
 
         {currPage !== undefined && totalPages !== undefined && (
-          <div className='mt-3 sticky bottom-0 bg-white py-2'>
+          <div className='mt-3 sticky bottom-0 bg-background py-2'>
             <Pagination
               currentPage={currPage}
               totalPages={totalPages}
@@ -133,47 +136,47 @@ export default function CustomTable({
   }
 
   return (
-    <div className='flex flex-col gap-4 bg-white rounded-xl p-4 shadow-sm'>
-      <div className='flex justify-between items-center mb-2'>
-        <p className='text-black text-base font-semibold'>{tableName}</p>
-        <div className='flex gap-2'>
-          {filterConfig.length > 0 && (
-            <button
-              aria-labelledby='filter button'
-              onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-1 text-xs px-3 cursor-pointer py-2 border rounded-3xl hover:scale-105 transition-all duration-300 ${showFilters
-                ? 'bg-deepViolet text-white border-deepViolet'
-                : 'border-gray-300 hover:bg-gray-100'
-                }`}
-            >
-              <span>Filters</span>
-              <Filter size={15} />
-            </button>
-          )}
-          {buttonPath && (
-            <Button
-              title={buttonTitle}
-              icon={buttonIcon}
-              routepath={buttonPath}
+    <Card>
+      <CardHeader>
+        <div className='flex justify-between items-center'>
+          <CardTitle className='text-base'>{tableName}</CardTitle>
+          <div className='flex gap-2'>
+            {filterConfig.length > 0 && (
+              <Button
+                variant={showFilters ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="gap-1"
+              >
+                <span>Filters</span>
+                <Filter size={15} />
+              </Button>
+            )}
+            {buttonPath && (
+              <CustomButton
+                title={buttonTitle}
+                icon={buttonIcon}
+                routepath={buttonPath}
+              />
+            )}
+          </div>
+        </div>
+
+        {filterConfig.length > 0 && showFilters && (
+          <div className='mt-4'>
+            <CustomFilter
+              config={filterConfig}
+              defaultValues={filterDefaultValues}
+              onFilterChange={onFilterChange}
+              fetchOptionsMap={fetchOptionsMap}
             />
-          )}
-        </div>
-      </div>
+          </div>
+        )}
+      </CardHeader>
 
-      {filterConfig.length > 0 && showFilters && (
-        <div className='mb-4'>
-          <CustomFilter
-            config={filterConfig}
-            defaultValues={filterDefaultValues}
-            onFilterChange={onFilterChange}
-            fetchOptionsMap={fetchOptionsMap}
-          />
-        </div>
-      )}
-
-      <div className='relative'>
+      <CardContent>
         {content}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

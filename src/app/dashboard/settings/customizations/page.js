@@ -21,7 +21,13 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import axios from 'axios';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import SimpleSelect from '@/components/ui/simple-dropdown';
 import ToggleSwitch from '@/components/ui/toggle-switch';
 import {
@@ -123,6 +129,7 @@ export default function DropdownConfigurationManager() {
       toast.error('Failed to save configuration');
     },
   });
+
   const handleModelChange = (value) => {
     setSelectedModel(value);
     setSelectedAttribute('');
@@ -142,73 +149,74 @@ export default function DropdownConfigurationManager() {
   }, [isSaving, isEditing, refetchConfig]);
 
   return (
-    <div className='p-4 max-w-6xl mx-auto'>
-      <h1 className='text-xl font-bold text-gray-800 mb-4'>
-        Dropdown Configuration Manager
-      </h1>
+    <div className='p-4 max-w-6xl mx-auto space-y-6'>
+      <Card>
+        <CardHeader>
+          <CardTitle>Dropdown Configuration Manager</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            {/* Model Selection */}
+            <div className='space-y-2'>
+              <Label>Select Model</Label>
+              <SimpleSelect
+                value={selectedModel}
+                options={models || []}
+                onChange={handleModelChange}
+                isDisabled={!models}
+              />
+            </div>
 
-      <div className='bg-white rounded-lg shadow p-4 mb-4'>
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-          {/* Model Selection */}
-          <div className='text-sm'>
-            <label className='block text-xs font-medium text-gray-700 mb-1'>
-              Select Model
-            </label>
-            <SimpleSelect
-              value={selectedModel}
-              options={models || []} // models is ['model1', 'model2']
-              onChange={handleModelChange}
-              isDisabled={!models}
-            />
+            {/* Attribute Selection */}
+            <div className='space-y-2'>
+              <Label>Select Attribute</Label>
+              <SimpleSelect
+                value={selectedAttribute}
+                options={modelFields || []}
+                onChange={handleAttributeChange}
+                isDisabled={!selectedModel || !modelFields}
+              />
+            </div>
           </div>
-
-          {/* Attribute Selection */}
-          <div className='text-sm'>
-            <label className='block text-xs font-medium text-gray-700 mb-1'>
-              Select Attribute
-            </label>
-            <SimpleSelect
-              value={selectedAttribute}
-              options={modelFields || []} // modelFields is [{value: 'attr1', label: 'Attribute 1'}]
-              onChange={handleAttributeChange}
-              isDisabled={!selectedModel || !modelFields}
-            />
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {selectedModel && selectedAttribute && (
-        <div className='bg-white rounded-lg shadow overflow-hidden'>
-          <div className='flex justify-between items-center p-4 border-b'>
-            <h2 className='text-md font-semibold text-gray-800'>
-              {modelFields?.find((f) => f.value === selectedAttribute)?.label ||
-                selectedAttribute}{' '}
-              Options
-            </h2>
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className='px-3 py-1.5 bg-deepViolet text-white rounded-md hover:bg-deepViolet/90 flex items-center gap-1 text-sm'
-            >
-              {isEditing ? 'View Mode' : 'Edit Mode'}
-            </button>
-          </div>
+        <Card>
+          <CardHeader>
+            <div className='flex justify-between items-center'>
+              <CardTitle className='text-lg'>
+                {modelFields?.find((f) => f.value === selectedAttribute)?.label ||
+                  selectedAttribute}{' '}
+                Options
+              </CardTitle>
+              <Button
+                onClick={() => setIsEditing(!isEditing)}
+                variant={isEditing ? "secondary" : "default"}
+              >
+                {isEditing ? 'View Mode' : 'Edit Mode'}
+              </Button>
+            </div>
+          </CardHeader>
 
-          {isEditing ? (
-            <EditableOptionsList
-              initialOptions={existingOptions}
-              onSave={(options) =>
-                saveConfig({
-                  model_name: selectedModel,
-                  attribute: selectedAttribute,
-                  options: options,
-                })
-              }
-              isSaving={isSaving}
-            />
-          ) : (
-            <ReadOnlyOptionsList options={existingOptions} />
-          )}
-        </div>
+          <CardContent>
+            {isEditing ? (
+              <EditableOptionsList
+                initialOptions={existingOptions}
+                onSave={(options) =>
+                  saveConfig({
+                    model_name: selectedModel,
+                    attribute: selectedAttribute,
+                    options: options,
+                  })
+                }
+                isSaving={isSaving}
+              />
+            ) : (
+              <ReadOnlyOptionsList options={existingOptions} />
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );
@@ -299,6 +307,7 @@ function EditableOptionsList({ initialOptions, onSave, isSaving }) {
     }
     setActiveId(null);
   };
+
   const handleOptionChange = (id, field, value) => {
     setOptions((prev) => {
       return prev.map((opt) => {
@@ -332,24 +341,19 @@ function EditableOptionsList({ initialOptions, onSave, isSaving }) {
   };
 
   return (
-    <div className='p-4'>
-      <div className='mb-4'>
-        <div className='flex gap-2 mb-2'>
-          <input
-            type='text'
-            value={newOptionValue}
-            onChange={(e) => setNewOptionValue(e.target.value)}
-            className='flex-1 px-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm'
-            placeholder='Add new option'
-          />
-          <button
-            onClick={addNewOption}
-            className='px-3 py-2 bg-deepViolet text-white rounded-md hover:bg-deepViolet/90 flex items-center gap-1 text-sm'
-          >
-            <Plus className='h-4 w-4' />
-            Add
-          </button>
-        </div>
+    <div className='space-y-4'>
+      <div className='flex gap-2'>
+        <Input
+          type='text'
+          value={newOptionValue}
+          onChange={(e) => setNewOptionValue(e.target.value)}
+          placeholder='Add new option'
+          className='flex-1'
+        />
+        <Button onClick={addNewOption} className='gap-2'>
+          <Plus className='h-4 w-4' />
+          Add
+        </Button>
       </div>
 
       <DndContext
@@ -362,7 +366,7 @@ function EditableOptionsList({ initialOptions, onSave, isSaving }) {
           items={options.map((opt) => opt.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className='border rounded-md divide-y'>
+          <div className='space-y-2'>
             {options.map((option) => (
               <SortableOption
                 key={option.id}
@@ -386,29 +390,15 @@ function EditableOptionsList({ initialOptions, onSave, isSaving }) {
         </DragOverlay>
       </DndContext>
 
-      <div className='mt-4 flex justify-end'>
-        <button
+      <div className='flex justify-end'>
+        <Button
           onClick={handleSubmit}
           disabled={isSaving}
-          className='px-4 py-2 bg-deepViolet text-white rounded-md hover:bg-deepViolet/90 flex items-center gap-1 text-sm disabled:opacity-50'
+          className='gap-2'
         >
           {isSaving ? (
             <>
-              <svg className='animate-spin h-4 w-4' viewBox='0 0 24 24'>
-                <circle
-                  className='opacity-25'
-                  cx='12'
-                  cy='12'
-                  r='10'
-                  stroke='currentColor'
-                  strokeWidth='4'
-                ></circle>
-                <path
-                  className='opacity-75'
-                  fill='currentColor'
-                  d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-                ></path>
-              </svg>
+              <div className='animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full' />
               Saving...
             </>
           ) : (
@@ -417,7 +407,7 @@ function EditableOptionsList({ initialOptions, onSave, isSaving }) {
               Save Options
             </>
           )}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -447,87 +437,88 @@ function SortableOption({
   };
 
   return (
-    <div
+    <Card
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 p-3 bg-white ${
-        isDragging ? 'bg-blue-50 shadow-md' : ''
-      } ${disabled ? 'opacity-50' : ''}`}
+      className={`${isDragging ? 'shadow-lg' : ''} ${disabled ? 'opacity-50' : ''}`}
     >
-      <button
-        {...attributes}
-        {...listeners}
-        className={`text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing`}
-        disabled={disabled}
-      >
-        <GripVertical className='h-4 w-4' />
-      </button>
+      <CardContent className="p-3">
+        <div className='flex items-center gap-3'>
+          <Button
+            variant="ghost"
+            size="icon"
+            {...attributes}
+            {...listeners}
+            disabled={disabled}
+            className='cursor-grab active:cursor-grabbing'
+          >
+            <GripVertical className='h-4 w-4' />
+          </Button>
 
-      <input
-        type='text'
-        value={option.config_value}
-        onChange={(e) => onChange(id, 'config_value', e.target.value)}
-        disabled={disabled}
-        className='flex-1 px-3 py-2 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm disabled:opacity-50'
-      />
+          <Input
+            type='text'
+            value={option.config_value}
+            onChange={(e) => onChange(id, 'config_value', e.target.value)}
+            disabled={disabled}
+            className='flex-1'
+          />
 
-      <ToggleSwitch
-        value={option.is_active}
-        onChange={(checked) => onToggleActive(id, checked)}
-        isDisabled={disabled}
-      />
+          <Switch
+            checked={option.is_active}
+            onCheckedChange={(checked) => onToggleActive(id, checked)}
+            disabled={disabled}
+          />
 
-      <button
-        onClick={() => onRemove(id)}
-        disabled={disabled}
-        className='text-red-500 hover:text-red-700 p-1'
-      >
-        <Trash2 className='h-4 w-4' />
-      </button>
-    </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onRemove(id)}
+            disabled={disabled}
+            className='text-red-500 hover:text-red-700'
+          >
+            <Trash2 className='h-4 w-4' />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
 function OptionItem({ option, isDragging }) {
   return (
-    <div
-      className={`flex items-center gap-3 p-3 bg-white shadow-lg ${
-        isDragging ? 'ring-1 ring-blue-500' : ''
-      }`}
-    >
-      <GripVertical className='h-4 w-4 text-gray-400' />
-      <div className='flex-1 px-3 py-2'>{option.config_value}</div>
-      <ToggleSwitch value={option.is_active} onChange={() => {}} isDisabled />
-    </div>
+    <Card className={isDragging ? 'shadow-lg' : ''}>
+      <CardContent className="p-3">
+        <div className='flex items-center gap-3'>
+          <GripVertical className='h-4 w-4 text-muted-foreground' />
+          <div className='flex-1 px-3 py-2'>{option.config_value}</div>
+          <Switch checked={option.is_active} disabled />
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
 function ReadOnlyOptionsList({ options }) {
   return (
-    <div className='p-4'>
+    <div className='space-y-2'>
       {options.length === 0 ? (
-        <div className='text-center py-4 text-gray-500 text-sm'>
+        <div className='text-center py-8 text-muted-foreground'>
           No options configured yet
         </div>
       ) : (
-        <div className='border rounded-md divide-y'>
-          {options
-            .sort((a, b) => a.display_order - b.display_order)
-            .map((option) => (
-              <div
-                key={option.id || `${option.config_key}-${option.config_value}`}
-                className='flex items-center gap-3 p-3 bg-white'
-              >
-                <ChevronDown className='h-4 w-4 text-gray-400' />
-                <div className='flex-1'>{option.config_value}</div>
-                <ToggleSwitch
-                  value={option.is_active}
-                  onChange={() => {}}
-                  isDisabled
-                />
-              </div>
-            ))}
-        </div>
+        options
+          .sort((a, b) => a.display_order - b.display_order)
+          .map((option) => (
+            <Card key={option.id || `${option.config_key}-${option.config_value}`}>
+              <CardContent className="p-3">
+                <div className='flex items-center gap-3'>
+                  <ChevronDown className='h-4 w-4 text-muted-foreground' />
+                  <div className='flex-1'>{option.config_value}</div>
+                  <Switch checked={option.is_active} disabled />
+                </div>
+              </CardContent>
+            </Card>
+          ))
       )}
     </div>
   );
