@@ -76,7 +76,7 @@ export default function ManageEmployeeGroup() {
   const tableData = isEditMode && data ? data?.data?.employees : [];
 
   return (
-    <div className='px-4'>
+    <div className='px-4 space-y-6'>
       <PageHeader title={'Employees Group'} showBackButton={true} />
 
       <CustomForm
@@ -90,16 +90,14 @@ export default function ManageEmployeeGroup() {
       />
 
       {isEditMode && !isFetching && (
-        <div className='mt-5'>
-          <CustomTable
-            tableName='Employees'
-            data={tableData}
-            showActions={false}
-            currPage={1}
-            totalPages={1}
-            setCurrPage={() => { }}
-          />
-        </div>
+        <CustomTable
+          tableName='Employees'
+          data={tableData}
+          showActions={false}
+          currPage={1}
+          totalPages={1}
+          setCurrPage={() => { }}
+        />
       )}
     </div>
   );

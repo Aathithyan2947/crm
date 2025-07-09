@@ -11,11 +11,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
-// import { makeCancelableFetcher } from '@/lib/cancel-token';
 import dynamic from 'next/dynamic';
 import { getPartiesListing } from '@/services/parties-api';
 
-export default function EmployeesPage() {
+export default function PartiesPage() {
   const pathname = usePathname();
   const [currPage, setCurrPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
@@ -33,27 +32,6 @@ export default function EmployeesPage() {
     },
   });
 
-  // const handleFilterChange = (newFilters) => {
-  //   setFilters(newFilters);
-  //   setCurrPage(1);
-  // };
-
-  // const fetchOptionsMap = {
-  //   getEmployeeGroupFilter: makeCancelableFetcher(
-  //     'employeeGroup',
-  //     async (searchValue, config) => {
-  //       const res = await getEmployeeGroupFilter(
-  //         { search: searchValue },
-  //         config
-  //       );
-  //       return res?.data?.data?.map((group) => ({
-  //         label: group.name,
-  //         value: group.id,
-  //       }));
-  //     }
-  //   ),
-  // };
-
   return (
     <div className='px-4'>
       <PageHeader title={'Parties'} />
@@ -68,10 +46,6 @@ export default function EmployeesPage() {
         setCurrPage={setCurrPage}
         totalPages={totalPage}
         isLoading={isLoading}
-        // Pass filter props
-        // filterConfig={employeeFilterConfig}
-        // fetchOptionsMap={fetchOptionsMap}
-        // onFilterChange={handleFilterChange}
       />
     </div>
   );

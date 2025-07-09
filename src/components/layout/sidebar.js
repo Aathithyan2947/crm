@@ -5,6 +5,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronLast, ChevronFirst, Search, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import {
   BOTTOM_DASHBOARD_ROUTES,
   DASHBOARD_MENU_ITEM_BOTTOM,
@@ -32,7 +37,6 @@ export default function Sidebar() {
       });
       setExpandedSections(sections);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, isSettingsPage]);
 
   const toggleSection = (label) => {
@@ -54,37 +58,76 @@ export default function Sidebar() {
       {/* Left Icons Column */}
       <div className='flex flex-col justify-between h-full w-[60px] border-r border-[#2c3e50]'>
         <div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             onClick={() => setCollapsed(!collapsed)}
-            className='mb-4 p-1 text-gray-400 hover:text-white w-full flex justify-center'
+            className='mb-4 text-gray-400 hover:text-white w-full'
           >
             {collapsed ? <ChevronLast size={18} /> : <ChevronFirst size={18} />}
-          </button>
+          </Button>
 
           {/* Module Items (Top) */}
           <div className='overflow-y-auto max-h-[calc(100vh-120px)]'>
             {DASHBOARD_MENU_ITEMS.map((item) => (
-              <Link
+              <Button
                 key={item.href}
-                href={item.href}
-                className='relative group my-1 flex justify-center'
+                variant="ghost"
+                size="icon"
+                asChild
+                className={cn(
+                  'relative group my-1 w-8 h-8 rounded-md',
+                  isActive(item.href)
+                    ? 'bg-[#1e4a8e] text-white hover:bg-[#1e4a8e]'
+                    : 'text-gray-400 hover:bg-[#32435b]'
+                )}
                 aria-label={item.label}
               >
-                <div
-                  className={cn(
-                    'w-8 h-8 flex items-center justify-center rounded-md',
-                    isActive(item.href)
-                      ? 'bg-[#1e4a8e] text-white'
-                      : 'text-gray-400 hover:bg-[#32435b]'
-                  )}
-                >
+                <Link href={item.href}>
                   <div
                     className={isActive(item.href) ? 'text-white' : item.color}
                     aria-hidden="true"
                   >
                     {item.icon}
                   </div>
+                  <div
+                    className={cn(
+                      'absolute left-full top-1/2 -translate-y-1/2 whitespace-nowrap rounded px-2 py-1 text-sm bg-gray-800 text-white opacity-0 group-hover:opacity-100 z-10',
+                      collapsed ? 'block' : 'hidden'
+                    )}
+                    aria-hidden="true"
+                  >
+                    {item.label}
+                  </div>
+                </Link>
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom Menu Items */}
+        <div className='pb-4'>
+          {DASHBOARD_MENU_ITEM_BOTTOM.map((item) => (
+            <Button
+              key={item.href}
+              variant="ghost"
+              size="icon"
+              asChild
+              className={cn(
+                'relative group my-1 w-8 h-8 rounded-md',
+                isActive(item.href)
+                  ? 'bg-[#1e4a8e] text-white hover:bg-[#1e4a8e]'
+                  : 'text-gray-400 hover:bg-[#32435b]'
+              )}
+              aria-label={item.label}
+            >
+              <Link href={item.href}>
+                <div
+                  className={isActive(item.href) ? 'text-white' : item.color}
+                  aria-hidden="true"
+                >
+                  {item.icon}
                 </div>
                 <div
                   className={cn(
@@ -96,44 +139,7 @@ export default function Sidebar() {
                   {item.label}
                 </div>
               </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Bottom Menu Items */}
-        <div className='pb-4'>
-          {DASHBOARD_MENU_ITEM_BOTTOM.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className='relative group my-1 flex justify-center'
-              aria-label={item.label}
-            >
-              <div
-                className={cn(
-                  'w-8 h-8 flex items-center justify-center rounded-md',
-                  isActive(item.href)
-                    ? 'bg-[#1e4a8e] text-white'
-                    : 'text-gray-400 hover:bg-[#32435b]'
-                )}
-              >
-                <div
-                  className={isActive(item.href) ? 'text-white' : item.color}
-                  aria-hidden="true"
-                >
-                  {item.icon}
-                </div>
-              </div>
-              <div
-                className={cn(
-                  'absolute left-full top-1/2 -translate-y-1/2 whitespace-nowrap rounded px-2 py-1 text-sm bg-gray-800 text-white opacity-0 group-hover:opacity-100 z-10',
-                  collapsed ? 'block' : 'hidden'
-                )}
-                aria-hidden="true"
-              >
-                {item.label}
-              </div>
-            </Link>
+            </Button>
           ))}
         </div>
       </div>
@@ -150,7 +156,7 @@ export default function Sidebar() {
                 size={16}
                 aria-hidden="true"
               />
-              <input
+              <Input
                 id="sidebar-search"
                 type='text'
                 placeholder='Search'
@@ -174,16 +180,17 @@ export default function Sidebar() {
                 <div className='space-y-1'>
                   {SETTINGS_MENU_ITEMS.map((section) => (
                     <div key={section.label} className='mb-2'>
-                      <button
-                        aria-expanded={expandedSections[section.label]}
-                        aria-controls={`section-${section.label}`}
+                      <Button
+                        variant="ghost"
                         className={cn(
-                          'flex items-center justify-between w-full px-2 py-1.5 rounded-md cursor-pointer',
+                          'flex items-center justify-between w-full px-2 py-1.5 rounded-md h-auto',
                           expandedSections[section.label]
-                            ? 'bg-[#1e4a8e] text-white'
+                            ? 'bg-[#1e4a8e] text-white hover:bg-[#1e4a8e]'
                             : 'text-gray-300 hover:bg-[#32435b]'
                         )}
                         onClick={() => toggleSection(section.label)}
+                        aria-expanded={expandedSections[section.label]}
+                        aria-controls={`section-${section.label}`}
                       >
                         <div className='flex items-center gap-2'>
                           <div
@@ -208,7 +215,7 @@ export default function Sidebar() {
                           )}
                           aria-hidden="true"
                         />
-                      </button>
+                      </Button>
 
                       {expandedSections[section.label] && (
                         <div
@@ -216,19 +223,19 @@ export default function Sidebar() {
                           className='ml-4 mt-1 pl-2 border-l border-gray-600 space-y-1'
                         >
                           {section.children.map((item) => (
-                            <Link
+                            <Button
                               key={item.href}
-                              href={item.href}
+                              variant="ghost"
+                              asChild
+                              className={cn(
+                                'flex items-center gap-2 px-2 py-1.5 rounded-md text-sm w-full justify-start h-auto',
+                                isActive(item.href)
+                                  ? 'bg-[#1e4a8e] text-white hover:bg-[#1e4a8e]'
+                                  : 'text-gray-300 hover:bg-[#32435b]'
+                              )}
                               aria-current={isActive(item.href) ? 'page' : undefined}
                             >
-                              <div
-                                className={cn(
-                                  'flex items-center gap-2 px-2 py-1.5 rounded-md text-sm',
-                                  isActive(item.href)
-                                    ? 'bg-[#1e4a8e] text-white'
-                                    : 'text-gray-300 hover:bg-[#32435b]'
-                                )}
-                              >
+                              <Link href={item.href}>
                                 <div
                                   className={
                                     isActive(item.href)
@@ -240,8 +247,8 @@ export default function Sidebar() {
                                   {item.icon}
                                 </div>
                                 <span>{item.label}</span>
-                              </div>
-                            </Link>
+                              </Link>
+                            </Button>
                           ))}
                         </div>
                       )}
@@ -260,18 +267,18 @@ export default function Sidebar() {
                   <ul className='space-y-1'>
                     {filteredModuleItems.map((item) => (
                       <li key={item.href}>
-                        <Link
-                          href={item.href}
+                        <Button
+                          variant="ghost"
+                          asChild
+                          className={cn(
+                            'flex items-center gap-2 px-2 py-1.5 rounded-md text-sm w-full justify-start h-auto',
+                            isActive(item.href)
+                              ? 'bg-[#1e4a8e] text-white hover:bg-[#1e4a8e]'
+                              : 'text-gray-300 hover:bg-[#32435b]'
+                          )}
                           aria-current={isActive(item.href) ? 'page' : undefined}
                         >
-                          <div
-                            className={cn(
-                              'flex items-center gap-2 px-2 py-1.5 rounded-md text-sm',
-                              isActive(item.href)
-                                ? 'bg-[#1e4a8e] text-white'
-                                : 'text-gray-300 hover:bg-[#32435b]'
-                            )}
-                          >
+                          <Link href={item.href}>
                             <div
                               className={
                                 isActive(item.href) ? 'text-white' : item.color
@@ -281,8 +288,8 @@ export default function Sidebar() {
                               {item.icon}
                             </div>
                             <span>{item.label}</span>
-                          </div>
-                        </Link>
+                          </Link>
+                        </Button>
                       </li>
                     ))}
                   </ul>
