@@ -52,6 +52,7 @@ export default function DynamicInput({
       )}
 
       {error && <p className='pt-2 text-xs text-red-500'>{error.message}</p>}
+      }
     </div>
   );
 }
